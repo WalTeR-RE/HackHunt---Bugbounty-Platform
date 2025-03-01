@@ -128,6 +128,7 @@
       <path value="$PROJECT_DIR$/Hackhunt/vendor/nunomaduro/collision" />
       <path value="$PROJECT_DIR$/Hackhunt/vendor/dragonmantank/cron-expression" />
       <path value="$PROJECT_DIR$/Hackhunt/vendor/tijsverkoyen/css-to-inline-styles" />
+      <path value="$PROJECT_DIR$/Hackhunt/vendor/laravel/sanctum" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
