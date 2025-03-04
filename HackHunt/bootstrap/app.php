@@ -15,14 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->use([
-            "role" => \App\Http\Middleware\RoleMiddleware::class,
-            "rate-limiter" => \App\Http\Middleware\RateLimiterMiddleware::class,
-            "authenticate_admin" => \App\Http\Middleware\AuthenticateAdmin::class,
-            "authenticate_customer" => \App\Http\Middleware\AuthenticateCustomer::class,
-            "authenticate_researcher" => \App\Http\Middleware\AuthenticateResearcher::class,
-        ]);
+        //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })->create()->loadEnvironmentFrom('.env');

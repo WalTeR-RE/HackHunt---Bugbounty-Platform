@@ -124,6 +124,7 @@
       <excludeFolder url="file://$MODULE_DIR$/Hackhunt/vendor/voku/portable-ascii" />
       <excludeFolder url="file://$MODULE_DIR$/Hackhunt/vendor/webmozart/assert" />
       <excludeFolder url="file://$MODULE_DIR$/Hackhunt/vendor/laravel/sanctum" />
+      <excludeFolder url="file://$MODULE_DIR$/HackHunt/vendor/firebase/php-jwt" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
