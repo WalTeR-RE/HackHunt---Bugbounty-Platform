@@ -3,6 +3,9 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\AuthenticateAdmin;
+use App\Http\Middleware\AuthenticateResearcher;
+use App\Http\Middleware\AuthenticateCustomer;
 
 $_ENV['DB_CONNECTION'] = 'mysql';
 putenv('DB_CONNECTION=mysql');
@@ -15,7 +18,26 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->appendToGroup('admins',[
+            "authenticate_admin" => AuthenticateAdmin::class,
+        ]);
+
+        $middleware->appendToGroup('customers',[
+            "authenticate_customer" => AuthenticateCustomer::class,
+        ]);
+
+        $middleware->appendToGroup('researchers',[
+            "authenticate_researcher" => AuthenticateResearcher::class,
+        ]);
+
+        $middleware->alias([
+            'authenticated' => AuthenticateResearcher::class,
+        ]);
+
+        $middleware->use([
+            \App\Http\Middleware\EnsureContentType::class,
+            ]
+        );
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
