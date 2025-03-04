@@ -12,30 +12,32 @@ class CreateUsersTable extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id()->primary()->autoIncrement();
+            $table->id();
+            $table->uuid('uuid')->unique();
             $table->string('name');
             $table->string('about_me')->nullable();
             $table->string('nickname')->unique();
             $table->string('profile_picture')->default('default.png');
             $table->string('background_picture')->default('default_background.png');
-            $table->integer('role_id')->default('-1');
+            $table->integer('role_id')->default(1);
             $table->integer('rank');
             $table->string('country');
-            $table->string('total_points');
-            $table->string('accuracy');
+            $table->boolean('active')->default(true);
+            $table->bigInteger('total_points')->default(0);
+            $table->float('accuracy')->default(0.0);
             $table->json('links')->nullable();
             $table->string('email')->unique();
-            $table->integer('phone_number')->unique();
+            $table->string('phone_number', 20)->unique();
             $table->date('birthday');
-            $table->integer('age');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('verified')->default(false);
-            $table->integer('vulnerabilities_count')->nullable();
-            $table->integer('engagement_count')->nullable();
+            $table->integer('vulnerabilities_count')->default(0);
+            $table->integer('engagement_count')->default(0);
             $table->rememberToken();
             $table->timestamps();
         });
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -49,13 +51,16 @@ class CreateUsersTable extends Migration
         });
 
         Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            $table->integer('id')->primary()->autoIncrement();
+            $table->uuid('user_id')->nullable();
+            $table->foreign('user_id')->references('uuid')->on('users')->onDelete('cascade');
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
+            $table->longText('payload')->nullable();
+            $table->integer('last_activity')->index()->nullable();
+            $table->text('remember_token')->nullable();
         });
+
     }
 
     /**
