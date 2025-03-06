@@ -17,6 +17,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('logout', [AuthController::class, 'logout'])->middleware('authenticated');
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me'])->middleware('authenticated');
+    Route::post('forget-password',[AuthController::class, 'ForgetPassword']);
 });
 
 Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], function () {
