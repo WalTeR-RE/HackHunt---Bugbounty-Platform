@@ -21,6 +21,7 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], function () {
+    Route::get('/', [AuthController::class, 'me'])->middleware(['role:admin|player|test|Test']);
     Route::get('/welcome', function () {
         return view('welcome');
     });

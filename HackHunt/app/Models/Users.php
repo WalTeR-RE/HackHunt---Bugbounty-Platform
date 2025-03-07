@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 class Users extends Authenticatable
 {
     use HasFactory, Notifiable;
+    protected $primaryKey = 'uuid';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $table = 'users';
 
@@ -66,6 +69,13 @@ class Users extends Authenticatable
                 ['remember_token' => $value, 'last_activity' => now()->timestamp]
             );
     }
+    public function role() {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+    public function hasPermission($permissionName)
+    {
+        return $this->role->permissions->contains('name', $permissionName);
+    }
 
     public function getRememberTokenName()
     {
@@ -88,7 +98,7 @@ class Users extends Authenticatable
             'accuracy' => 'numeric|min:0|max:100',
             'links' => 'nullable|array',
             'email' => 'required|email|max:255|unique:users,email' . ($isUpdate ? ",$userId" : ''),
-            'phone_number' => 'nullable|string|max:20|unique:users,phone_number' . ($isUpdate ? ",$userId" : ''),
+            'phone_number' => 'required|string|max:20|unique:users,phone_number' . ($isUpdate ? ",$userId" : ''),
             'birthday' => 'required|date|before:today',
             'password' => $isUpdate ? 'nullable|string|min:8' : 'required|string|min:8',
             'verified' => 'boolean',
