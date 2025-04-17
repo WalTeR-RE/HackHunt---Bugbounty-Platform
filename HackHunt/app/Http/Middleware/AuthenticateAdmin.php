@@ -28,8 +28,6 @@ class AuthenticateAdmin
                 return response()->json(['message' => 'Not authorized'], 401);
             }
 
-
-
             $publicKey = env('JWT_PUBLIC_KEY');
             if (!$publicKey) {
                 return response()->json(['message' => 'JWT public key not configured'], 500);

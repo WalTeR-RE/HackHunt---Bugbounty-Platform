@@ -125,6 +125,8 @@
       <excludeFolder url="file://$MODULE_DIR$/Hackhunt/vendor/webmozart/assert" />
       <excludeFolder url="file://$MODULE_DIR$/Hackhunt/vendor/laravel/sanctum" />
       <excludeFolder url="file://$MODULE_DIR$/HackHunt/vendor/firebase/php-jwt" />
+      <excludeFolder url="file://$MODULE_DIR$/HackHunt/storage/app" />
+      <excludeFolder url="file://$MODULE_DIR$/HackHunt/storage/framework" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
