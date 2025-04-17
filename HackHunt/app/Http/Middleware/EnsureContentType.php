@@ -15,9 +15,10 @@ class EnsureContentType
      */
     public function handle(Request $request, Closure $next): Response
     {
+
         $contentType = $request->header('Content-Type');
 
-        if ($contentType !== 'application/json' && $request->getMethod() !== 'GET') {
+        if ($contentType !== 'application/json' && $request->getMethod() !== 'GET'&& $request->getMethod() !== 'OPTIONS') {
             return response()->json([
                 'success' => false,
                 'message' => 'Content-Type must be application/json'

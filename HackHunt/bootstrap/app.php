@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->use([
             \App\Http\Middleware\EnsureContentType::class,
+            \App\Http\Middleware\CustomCors::class
             ]
         );
     })
