@@ -51,7 +51,7 @@ class CreateUsersTable extends Migration
         });
 
         Schema::create('sessions', function (Blueprint $table) {
-            $table->integer('id')->primary()->autoIncrement();
+            $table->string('id', 255)->primary();
             $table->uuid('user_id')->nullable();
             $table->foreign('user_id')->references('uuid')->on('users')->onDelete('cascade');
             $table->string('ip_address', 45)->nullable();
