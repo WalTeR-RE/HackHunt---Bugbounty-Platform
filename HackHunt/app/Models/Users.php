@@ -45,6 +45,7 @@ class Users extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'authenticated'
     ];
 
     protected $casts = [
@@ -53,12 +54,17 @@ class Users extends Authenticatable
         'links' => 'array',
         'active' => 'boolean',
         'verified' => 'boolean',
+        'authenticated' => 'boolean'
     ];
 
     public function getRememberToken()
     {
         $session = DB::table('sessions')->where('user_id', $this->uuid)->latest('last_activity')->first();
         return $session ? $session->remember_token : null;
+    }
+
+    public function IsLoggedIn(){
+        return $this->authenticated;
     }
 
     public function setRememberToken($value)

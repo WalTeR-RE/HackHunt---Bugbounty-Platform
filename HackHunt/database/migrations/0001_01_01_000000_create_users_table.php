@@ -34,6 +34,7 @@ class CreateUsersTable extends Migration
             $table->boolean('verified')->default(false);
             $table->integer('vulnerabilities_count')->default(0);
             $table->integer('engagement_count')->default(0);
+            $table->boolean('authenticated')->default(0);
             $table->rememberToken();
             $table->timestamps();
         });

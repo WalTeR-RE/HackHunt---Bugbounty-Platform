@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Exception;
+use App\Models\Users;
 use App\Enums\UserRole;
 
 class AuthenticateResearcher
@@ -45,7 +46,14 @@ class AuthenticateResearcher
             if (!isset($decoded_token->role) || intval(UserRole::from($decoded_token->role)->label()) < intval(UserRole::RESEARCHER->label())) {
                 return response()->json(['message' => 'Forbidden!'], 403);
             }
+            
+            $out = Users::where('uuid', $decoded_token->sub)
+            ->where('authenticated', 1)
+            ->first();
 
+            if(!$out){
+                return response()->json(['message' => 'Forbidden!'], 403);
+            }
             return $next($request);
         } catch (Exception $exception) {
             return response()->json([
