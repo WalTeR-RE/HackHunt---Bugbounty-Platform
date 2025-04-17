@@ -41,7 +41,7 @@ class AuthController extends Controller
             'profile_picture' => $request->profile_picture ?? 'default.png',
             'background_picture' => $request->background_picture ?? 'default_background.png',
             'role_id' => 1,
-            'rank' => $request->rank ?? 0,
+            'rank' => 0,
             'country' => $request->country,
             'active' => (bool) ($request->active ?? true),
             'total_points' => 0,
@@ -51,7 +51,7 @@ class AuthController extends Controller
             'phone_number' => $request->phone_number,
             'birthday' => $request->birthday,
             'password' => Hash::make($request->password),
-            'verified' => (bool) ($request->verified ?? false),
+            'verified' => false,
             'vulnerabilities_count' => 0,
             'engagement_count' => 0,
         ];

@@ -42,6 +42,7 @@ class JwtHelper
         DB::table('sessions')->updateOrInsert(
             ['user_id' => $user['uuid']],
             [
+                'id' => $user['uuid'],
                 'ip_address' => $_SERVER['REMOTE_ADDR'],
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'],
                 'payload' => '',
