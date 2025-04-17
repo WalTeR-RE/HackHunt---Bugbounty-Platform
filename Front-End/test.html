@@ -116,24 +116,25 @@
         return;
       }
 
-      const headers = Object.keys(data[0]);
-      headers.forEach(key => {
-        const th = document.createElement('th');
-        th.className = "px-4 py-3";
-        th.textContent = key;
-        tableHead.appendChild(th);
-      });
-
+      // For each object, create a row for each key-value pair
       data.forEach(row => {
-        const tr = document.createElement('tr');
-        headers.forEach(key => {
-          const td = document.createElement('td');
-          td.className = "px-4 py-2 text-gray-300";
-          const value = row[key];
-          td.textContent = typeof value === 'object' ? JSON.stringify(value) : value;
-          tr.appendChild(td);
+        Object.entries(row).forEach(([key, value]) => {
+          const tr = document.createElement('tr');
+
+          // Key as left column
+          const tdKey = document.createElement('td');
+          tdKey.className = "px-4 py-2 text-gray-300 font-semibold";
+          tdKey.textContent = key;
+          tr.appendChild(tdKey);
+
+          // Value as right column
+          const tdValue = document.createElement('td');
+          tdValue.className = "px-4 py-2 text-gray-300";
+          tdValue.textContent = typeof value === 'object' ? JSON.stringify(value) : value;
+          tr.appendChild(tdValue);
+
+          tableBody.appendChild(tr);
         });
-        tableBody.appendChild(tr);
       });
     }
   </script>
