@@ -6,6 +6,8 @@ use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Middleware\AuthenticateCustomer;
 use App\Http\Middleware\AuthenticateResearcher;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportCommentController;
 
 Route::fallback(function () {
     return response()->json(['message' => 'Not Found!'], 404);
@@ -17,7 +19,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('logout', [AuthController::class, 'logout'])->middleware('authenticated');
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me'])->middleware('authenticated');
-    Route::post('forget-password',[AuthController::class, 'ForgetPassword']);
+    Route::post('forget-password', [AuthController::class, 'ForgetPassword']);
 });
 
 Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], function () {
@@ -39,3 +41,9 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         return view('welcome');
     });
 });
+
+
+    Route::post('SubmitReport/{report}', [ReportController::class, 'Store']);
+    Route::put('SubmitReport/{report}/triage', [ReportController::class, 'Update']);
+    Route::post('SubmitReport/{report}/publish', [ReportController::class, 'publish']);
+
