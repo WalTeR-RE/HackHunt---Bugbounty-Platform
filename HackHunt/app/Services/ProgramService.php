@@ -14,8 +14,7 @@ class ProgramService{
     {
         $user = AuthenticateUser::authenticatedUser($request);
         $allowed = ProgramValidation::userOwnsProgram($uuid, $user->uuid);
-
-        if (!$allowed || $user->role_id !== 3) {
+        if (!$allowed && $user->role_id !== 3) {
             return response()->json([
                 'success' => false,
                 'message' => 'Forbidden',

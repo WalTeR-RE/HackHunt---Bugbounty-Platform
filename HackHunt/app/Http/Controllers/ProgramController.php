@@ -41,8 +41,7 @@ class ProgramController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Program updated successfully',
-                'data'=>$program
+                'message' => 'Program updated successfully'
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
