@@ -16,15 +16,7 @@ class AuthService
 {
     public function registerUser(Request $request)
     {
-        $validator = Validator::make($request->all(), Users::validationRules());
-
-        if ($validator->fails()) {
-            return [
-                'success' => false,
-                'errors' => $validator->errors(),
-                'status' => 422
-            ];
-        }
+        
 
         $payload = [
             'uuid' => (string) Str::uuid(),
@@ -61,19 +53,7 @@ class AuthService
 
     public function loginUser(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string|min:6',
-        ]);
-
-        if ($validator->fails()) {
-            return [
-                'success' => false,
-                'errors' => $validator->errors(),
-                'status' => 422
-            ];
-        }
-
+        
         $user = Users::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -104,17 +84,7 @@ class AuthService
 
     public function refreshToken(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'refresh_token' => 'required|string'
-        ]);
-
-        if ($validator->fails()) {
-            return [
-                'success' => false,
-                'errors' => $validator->errors(),
-                'status' => 422
-            ];
-        }
+        
 
         try {
             $decoded = JwtHelper::decodeToken($request->refresh_token);
