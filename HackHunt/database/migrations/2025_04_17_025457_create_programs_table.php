@@ -28,6 +28,7 @@ return new class extends Migration
             $table->json('scope')->nullable();
             $table->text('description_rules')->nullable();
             $table->string('status')->default('active');
+            $table->json('Owners_id');
             $table->timestamps();
         });
     }

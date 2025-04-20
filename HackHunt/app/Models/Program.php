@@ -32,12 +32,15 @@ class Program extends Model
         'target_description',
         'scope',
         'description_rules',
-        'status'
+        'status',
+        'Owners_id'
     ];
 
     protected $casts = [
         'rewards' => 'array',
         'scope' => 'array',
+        'Owners_id'=>'array',
+
     ];
 
     public function reports()

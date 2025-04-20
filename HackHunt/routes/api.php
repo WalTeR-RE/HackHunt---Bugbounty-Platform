@@ -6,7 +6,7 @@ use App\Http\Middleware\AuthenticateAdmin;
 use App\Http\Middleware\AuthenticateCustomer;
 use App\Http\Middleware\AuthenticateResearcher;
 use App\Http\Controllers\AuthController;
-
+use App\Http\Controllers\EditProgramController;
 Route::fallback(function () {
     return response()->json(['message' => 'Not Found!'], 404);
 });
@@ -39,3 +39,4 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         return view('welcome');
     });
 });
+Route::put('/update/{id}',[EditProgramController::class,'update']);

@@ -144,7 +144,7 @@ class AuthService
             ];
         }
     }
-    
+
     /**
      * Logout user (revoke token).
      */
@@ -156,7 +156,7 @@ class AuthService
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-      /**
+    /**
      * Get authenticated user details.
      */
     public function me(Request $request)
