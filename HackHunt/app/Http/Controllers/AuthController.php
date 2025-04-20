@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\AuthenticateUser;
+use App\Helper\ProgramValidation;
 use App\Models\Program;
 use App\Models\Report;
 use App\Services\AuthService;
@@ -41,20 +43,20 @@ class AuthController extends Controller
         return $this->authService->me($request);
     }
 
+    // Test Only will remove it later
     public function test(Request $request)
     {
-        // Assuming you're passing a specific program_id, you need to get the program instance first
-        $program = Program::find("93ed0cda-df8f-4618-ad6e-b087f25d08fe"); // Find program by its ID (use UUID or program_id)
-    
-        if (!$program) {
+
+        $program = Program::find("93ed0cda-df8f-4618-ad6e-b087f25d08fe");
+        
+        $user = AuthenticateUser::authenticatedUser($request);
+        ProgramValidation::userOwnsProgram("93ed0cda-df8f-4618-ad6e-b087f25d08fe",$user->uuid);
+       /* if (!$program) {
             return response()->json(['error' => 'Program not found'], 404);
         }
     
-        // Retrieve the owners using the relationship
-        $owners = $program->owners; // This will return all related users (owners)
-    
-        // Return the owners (You can customize this as needed)
-        return response()->json($owners);
+        $owners = $program->owners; 
+        return ($owners);*/
     }
     
 }
