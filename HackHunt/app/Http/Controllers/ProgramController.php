@@ -22,15 +22,12 @@ class ProgramController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'bounty_range' => 'nullable|string',
-                'number_of_reports' => 'nullable|integer',
-                'avg_bounty' => 'nullable|numeric',
-                'vulnerabilities_rewarded' => 'integer',
                 'fast_description' => 'nullable|string',
-                'rewards' => 'nullable|string',
+                'rewards' => 'nullable|array',
                 'target_description' => 'nullable|string',
-                'scope' => 'nullable|string',
+                'scope' => 'nullable|array',
                 'description_rules' => 'nullable|string',
-                'status' => 'string',
+                'status' => 'required|string|in:Active,Stopped',
             ]);
 
             if ($validator->fails()) {

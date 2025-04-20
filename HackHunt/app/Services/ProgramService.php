@@ -24,9 +24,6 @@ class ProgramService{
         $fields = [
             'name',
             'bounty_range',
-            'number_of_reports',
-            'avg_bounty',
-            'vulnerabilities_rewarded',
             'fast_description',
             'rewards',
             'target_description',
