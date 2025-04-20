@@ -25,7 +25,7 @@ class StoreReportRequest extends FormRequest
             'title' => 'required|string|max:255',
             'type' => 'required|string|max:100',
             'description' => 'required|string',
-            'severity' => 'required|in:p1,p2,p3,p4,p5',
+            'severity' => 'required|in:P1,P2,P3,P4,P5',
             'attachments.*' => 'nullable|file|mimes:jpg,png,mp4,pdf|max:10240',
         ];
     }
