@@ -43,7 +43,10 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
 });
 
 
-    Route::post('SubmitReport/{report}', [ReportController::class, 'Store']);
-    Route::put('SubmitReport/{report}/triage', [ReportController::class, 'Update']);
-    Route::post('SubmitReport/{report}/publish', [ReportController::class, 'publish']);
-
+Route::middleware('authenticated')->prefix('SubmitReport')->group(function () {
+    Route::post('{report}', [ReportController::class, 'Store']);
+    Route::put('{report}/triage', [ReportController::class, 'Update']);
+    Route::post('{report}/publish', [ReportController::class, 'Publish']);
+    Route::post('{report}/comments', [ReportCommentController::class, 'Store']);
+    Route::get('{report}/comments', [ReportCommentController::class, 'Publish']);
+});
