@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportCommentController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\ProgramController;
 
 
 Route::fallback(function () {
@@ -21,7 +22,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('logout', [AuthController::class, 'logout'])->middleware('authenticated');
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me'])->middleware('authenticated');
-    
+
 });
 
 Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], function () {
@@ -32,9 +33,7 @@ Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], f
 });
 
 Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::class], function () {
-    Route::get('/welcome', function () {
-        return view('welcome');
-    });
+    Route::put('/programs/{uuid}', [ProgramController::class, 'update']);
 });
 
 
