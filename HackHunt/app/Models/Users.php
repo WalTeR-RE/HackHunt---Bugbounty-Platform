@@ -83,6 +83,14 @@ class Users extends Authenticatable
         return $this->role->permissions->contains('name', $permissionName);
     }
 
+    public function ownedPrograms()
+    {
+    return $this->belongsToMany(Program::class, 'program_user', 'user_id', 'program_id')->select('uuid','name');
+                
+    }
+
+
+
     public function getRememberTokenName()
     {
         return 'remember_token';

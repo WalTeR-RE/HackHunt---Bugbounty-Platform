@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Report extends Model
 {
     use HasFactory;
-
+    protected $primaryKey = 'uuid'; 
+    protected $keyType = 'string';
     protected $table = 'reports';
 
     protected $fillable = [

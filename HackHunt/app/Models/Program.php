@@ -49,4 +49,17 @@ class Program extends Model
     {
         return $this->reports()->sum('bounty');
     }
+
+    public function owners()
+    {
+        return $this->belongsToMany(Users::class, 'program_user', 'program_id', 'user_id')
+                    ->select('uuid','name');
+    }
+    
+    
+    
+    
+    
+
+
 }

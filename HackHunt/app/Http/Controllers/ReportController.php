@@ -1,45 +1,49 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreReportRequest;
+use App\Http\Controllers\Controller;
+use App\Services\ReportService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Users;
 use App\Models\Program;
+use App\Helper\AuthenticateUser;
 use App\Models\Report;
 use App\Models\ReportLog;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Ramsey\Uuid\Uuid;
+
 class ReportController extends Controller
 {
-    public function Store(StoreReportRequest $request, Program $program)
-{
-    $attachments = [];
+    protected $reportService;
 
-    if ($request->hasFile('attachments')) {
-        foreach ($request->file('attachments') as $file) {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime = finfo_file($finfo, $file->getPathname());
-            $allowedMimes = ['image/jpeg', 'image/png', 'video/mp4', 'application/pdf'];
-
-            if (!in_array($mime, $allowedMimes)) {
-                return response()->json(['error' => 'One or more attachments have invalid file types.'], 422);
-            }
-
-            $attachments[] = $file->store('attachments', 'public');
-        }
+    public function __construct(ReportService $reportService)
+    {
+        $this->reportService = $reportService;
     }
 
-    $report = Report::create([
-        'uuid' => Uuid::uuid4()->toString(),
-        'reporter' => Auth::id(),
-        'program_id' => $program->id,
-        'title' => $request->title,
-        'type' => $request->type,
-        'description' => $request->description,
-        'severity' => $request->severity,
-        'attachments' => json_encode($attachments),
-        'status' => 'New',
-    ]);
-        return response()->json(['message' => 'Report submitted', 'report_id' => $report->id], 201);
+    public function store(Request $request, Program $program)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'type' => 'required|string|max:100',
+            'description' => 'required|string',
+            'severity' => 'required|in:P1,P2,P3,P4,P5',
+            'attachments.*' => 'nullable|file|mimes:jpg,png,mp4,pdf|max:10240',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $result = $this->reportService->store($request, $program);
+
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], $result['code'] ?? 400);
+        }
+
+        return response()->json([
+            'message' => 'Report submitted',
+            'report_id' => $result['report_id']
+        ], 201);
     }
     public function Update(Request $request, Report $report)
     {
@@ -61,12 +65,16 @@ class ReportController extends Controller
         ]);
         return response()->json(['message' => 'Report triaged'], 200);
     }
-    public function publish(Report $report)
+    public function publish(Request $request,Report $report)
     {
+        $reporter = AuthenticateUser::authenticatedUser($request);
+        if (!$reporter) {
+            return ['error' => 'No User Found with this data.', 'code' => 400];
+        }
         $report->update(['published' => true]);
         ReportLog::create([
-            'report_id' => $report->id,
-            'performed_by' => Auth::id(),
+            'report_id' => $report->uuid,
+            'performed_by' => $reporter->uuid,
             'action' => 'published',
             'details' => 'Report marked as published.',
         ]);
