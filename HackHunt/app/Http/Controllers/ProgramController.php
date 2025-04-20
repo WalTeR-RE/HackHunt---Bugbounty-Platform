@@ -56,5 +56,25 @@ class ProgramController extends Controller
             ], 500);
         }
     }
+    public function destroy(Request $request, string $uuid)
+{
+    try {
+        $this->programService->deleteProgram($uuid, $request);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Program deleted successfully'
+        ]);
+
+    } catch (\Exception $e) {
+        
+        $statusCode = is_numeric($e->getCode()) ? (int)$e->getCode() : 500;
+
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], $statusCode);
+    }
+}
 
 }
