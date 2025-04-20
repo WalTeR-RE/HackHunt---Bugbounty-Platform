@@ -11,24 +11,34 @@ use Ramsey\Uuid\Uuid;
 class ReportController extends Controller
 {
     public function Store(StoreReportRequest $request, Program $program)
-    {
-        $attachments = [];
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $attachments[] = $file->store('attachments', 'public');
+{
+    $attachments = [];
+
+    if ($request->hasFile('attachments')) {
+        foreach ($request->file('attachments') as $file) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($finfo, $file->getPathname());
+            $allowedMimes = ['image/jpeg', 'image/png', 'video/mp4', 'application/pdf'];
+
+            if (!in_array($mime, $allowedMimes)) {
+                return response()->json(['error' => 'One or more attachments have invalid file types.'], 422);
             }
+
+            $attachments[] = $file->store('attachments', 'public');
         }
-        $report = Report::create([
-            'uuid' => Uuid::uuid4()->toString(),
-            'reporter' => Auth::id(),
-            'program_id' => $program->id,
-            'title' => $request->title,
-            'type' => $request->type,
-            'description' => $request->description,
-            'severity' => $request->severity,
-            'attachments' => json_encode($attachments),
-            'status' => 'New',
-        ]);
+    }
+
+    $report = Report::create([
+        'uuid' => Uuid::uuid4()->toString(),
+        'reporter' => Auth::id(),
+        'program_id' => $program->id,
+        'title' => $request->title,
+        'type' => $request->type,
+        'description' => $request->description,
+        'severity' => $request->severity,
+        'attachments' => json_encode($attachments),
+        'status' => 'New',
+    ]);
         return response()->json(['message' => 'Report submitted', 'report_id' => $report->id], 201);
     }
     public function Update(Request $request, Report $report)
