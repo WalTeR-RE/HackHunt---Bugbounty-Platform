@@ -43,4 +43,17 @@ class ProgramService{
         ]);
     }
 
+    public function deleteProgram($uuid, Request $request): bool
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        $isAdmin = ($user->role_id === 3);
+        $isOwner = ProgramValidation::userOwnsProgram($uuid, $user->uuid);
+
+        if (!$isAdmin && !$isOwner) {
+            throw new \Exception('Forbidden: Requires admin or owner privileges', 403);
+        }
+
+        $program = Program::where('program_id', $uuid)->firstOrFail();
+        return $program->delete();
+    }
 }

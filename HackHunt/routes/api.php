@@ -33,7 +33,8 @@ Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], f
 });
 
 Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::class], function () {
-    Route::put('/programs/{uuid}', [ProgramController::class, 'update']);
+    Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
+    Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
 });
 
 
