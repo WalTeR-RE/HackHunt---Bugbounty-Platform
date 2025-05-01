@@ -27,7 +27,7 @@ class ReportCommentController extends Controller
     }
 
    
-    public function Publish(Report $report)
+    public function restore(Report $report)
     {
         $comments = $report->comments;
         return response()->json($comments);

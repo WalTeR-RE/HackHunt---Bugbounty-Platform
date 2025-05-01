@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Users;
 use App\Models\Program;
 use App\Helper\AuthenticateUser;
+use App\Helper\ProgramValidation;
 use App\Models\Report;
 use App\Models\ReportLog;
 
@@ -18,6 +19,11 @@ class ReportController extends Controller
     public function __construct(ReportService $reportService)
     {
         $this->reportService = $reportService;
+    }
+
+    public function getReportData(Request $request,Report $report){
+        $data = $report->getReportData();
+        return response()->json($data);
     }
 
     public function store(Request $request, Program $program)
@@ -46,25 +52,59 @@ class ReportController extends Controller
         ], 201);
     }
     public function Update(Request $request, Report $report)
-    {
-        $oldStatus = $report->status;
-        $report->update([
-            'status' => $request->status,
-            'points' => $request->points,
-            'bounty' => $request->bounty,
-            'triaged_at' => $request->status === 'Triaged' ? now() : null,
-            'resolved_at' => $request->status === 'Resolved' ? now() : null,
-            'rewarded' => $request->status === 'Resolved' ? true : false,
-        ]);
-
-        ReportLog::create([
-            'report_id' => $report->id,
-            'performed_by' => Auth::id(),
-            'action' => 'status_updated',
-            'details' => "Status changed from {$oldStatus} to {$request->status}. Points: " . ($request->points ?? 0) . ", Bounty: " . ($request->bounty ?? 0),
-        ]);
-        return response()->json(['message' => 'Report triaged'], 200);
+{
+    $reporter = AuthenticateUser::authenticatedUser($request);
+    if (!$reporter) {
+        return response()->json(['error' => 'No User Found with this data.'], 400);
     }
+
+    $program_uuid = $report->program_id;
+    $isValid = ProgramValidation::userOwnsProgram($program_uuid, $reporter->uuid);
+    if (!$isValid) {
+        return response()->json(['error' => 'You can’t do this.'], 400);
+    }
+
+    $oldStatus = $report->status;
+
+    $data = $request->only([
+        'status',
+        'points',
+        'bounty',
+        'severity',
+        'title',
+        'type',
+        'description',
+        'attachments',
+        'published'
+    ]);
+
+    if ($request->filled('status')) {
+        if ($request->status === 'Triaged') {
+            $data['triaged_at'] = now();
+        } elseif ($request->status === 'Resolved') {
+            $data['resolved_at'] = now();
+        }
+    }
+
+    if ($request->filled('points')) {
+        $data['rewarded'] = true;
+    }
+
+    $report->update($data);
+
+
+    ReportLog::create([
+        'report_id' => $report->uuid,
+        'performed_by' => $reporter->uuid,
+        'action' => 'status_updated',
+        'details' => "Status changed from {$oldStatus} to " . ($request->status ?? $oldStatus) .
+            ". Points: " . ($request->points ?? $report->points) .
+            ", Bounty: " . ($request->bounty ?? $report->bounty),
+    ]);
+
+    return response()->json(['message' => 'Report updated'], 200);
+}
+
     public function publish(Request $request,Report $report)
     {
         $reporter = AuthenticateUser::authenticatedUser($request);

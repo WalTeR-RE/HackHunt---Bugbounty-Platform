@@ -33,25 +33,25 @@ Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], f
 });
 
 Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::class], function () {
+    Route::put('/createProgram', [ProgramController::class, 'store']);
     Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
     Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
 });
 
 
 Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher::class], function () {
-    Route::get('/welcome', function () {
-        return view('welcome');
+    Route::middleware('authenticated')->prefix('reports')->group(function () {
+        Route::post('{program}/Submit', [ReportController::class, 'store']);
+        Route::put('{report}/triage', [ReportController::class, 'Update'])->middleware(AuthenticateCustomer::class) ;
+        Route::post('{report}/publish', [ReportController::class, 'Publish'])->middleware(AuthenticateCustomer::class);
+        Route::post('{report}/comments', [ReportCommentController::class, 'Store']);
+        Route::get('{report}/comments', [ReportCommentController::class, 'restore']);
+        Route::get('{report}', [ReportController::class, 'getReportData']);
     });
 });
 
 
-Route::middleware('authenticated')->prefix('Reports')->group(function () {
-    Route::post('{program}/Submit', [ReportController::class, 'store']);
-    Route::put('{report}/triage', [ReportController::class, 'Update']); //DON'T FORGET TO ADD MIDDLEWARE FOR ADMIN,PROGRAM_OWNER
-    Route::post('{report}/publish', [ReportController::class, 'Publish']);
-    Route::post('{report}/comments', [ReportCommentController::class, 'Store']);
-    Route::get('{report}/comments', [ReportCommentController::class, 'Publish']);
-});
+
 
 
 Route::prefix('password')->group(function () {

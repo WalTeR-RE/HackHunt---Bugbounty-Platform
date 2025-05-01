@@ -20,10 +20,12 @@ class ProgramController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
+                'name' => 'nullable|string|unique:programs,name,' . $uuid,
                 'bounty_range' => 'nullable|string',
                 'fast_description' => 'nullable|string',
-                'rewards' => 'nullable|array',
+                'rewards' => 'required|array|size:4',
+                'rewards.*.type' => 'required|string|in:cash,points',
+                'rewards.*.amount' => ['required', 'regex:/^\d{1,6}-\d{1,6}$/'],
                 'target_description' => 'nullable|string',
                 'scope' => 'nullable|array',
                 'description_rules' => 'nullable|string',
@@ -57,7 +59,7 @@ class ProgramController extends Controller
         }
     }
     public function destroy(Request $request, string $uuid)
-{
+    {
     try {
         $this->programService->deleteProgram($uuid, $request);
 
@@ -77,4 +79,37 @@ class ProgramController extends Controller
     }
 }
 
+    public function store(Request $request){
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|unique:programs,name|max:255',
+                'bounty_range' => 'required|string',
+                'is_private'=> 'required|boolean',
+                'fast_description' => 'required|string',
+                'rewards' => 'required|array|size:4',
+                'rewards.*.type' => 'required|string|in:cash,points',
+                'rewards.*.amount' => ['required', 'regex:/^\d{1,6}-\d{1,6}$/'],
+                'target_description' => 'required|string',
+                'scope' => 'required|array',
+                'description_rules' => 'required|string',
+                'status' => 'required|string|in:Active,Stopped',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+            $program = $this->programService->createProgram($request);
+
+            return response()->json($program);
+        }
+        catch (\Exception $e) {
+        
+            $statusCode = is_numeric($e->getCode()) ? (int)$e->getCode() : 500;
+    
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], $statusCode);
+        }
+    }
 }
