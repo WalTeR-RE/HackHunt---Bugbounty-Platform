@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class PasswordResetController extends Controller
 {
-    // 1. Send Reset Link Email
+   
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
@@ -24,7 +24,7 @@ class PasswordResetController extends Controller
             : response()->json(['message' => 'Unable to send reset link.'], 400);
     }
 
-    // 2. Handle Reset Submission
+    
     public function reset(Request $request)
     {
         $request->validate([
