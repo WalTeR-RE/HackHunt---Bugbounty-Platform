@@ -41,6 +41,8 @@ Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::cla
     Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
     Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
     Route::get('/programs/{program_id}/reports', [ReportController::class, 'getProgramReports']);
+    Route::put('/programs/{program_id}/invite', [ProgramController::class, 'inviteResearcher']);
+    Route::delete('/programs/{program_id}/remove', [ProgramController::class, 'removeResearcher']);
 });
 
 
@@ -53,7 +55,9 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         Route::get('{report}/comments', [ReportCommentController::class, 'restore']);
         Route::get('{report}', [ReportController::class, 'getReportData']);
     });
-    
+    Route::put('/programs/{uuid}/invite', [ProgramController::class, 'acceptrejectInvite']);
+    Route::delete('/programs/{uuid}/remove', [ProgramController::class, 'leaveProgram']);
+    Route::get('/invites', [ProgramController::class, 'getInvites']);
     Route::get('/crowdstream', [ReportController::class, 'getCrowdstream']);
     Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
     Route::get('/programs/{uuid}/hallofFame', [ReportController::class, 'getHallOfFame']);
