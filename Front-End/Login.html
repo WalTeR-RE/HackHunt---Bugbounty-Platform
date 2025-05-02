@@ -1,0 +1,72 @@
+<html>
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+<h1>Hello World</h1>
+    <h2>Login</h2>
+    <form action="" method="post">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required><br><br>
+        
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+        
+        <input type="submit" value="Login">
+    </form>
+    <h1 id="blabla">Test</h1>
+    <p>Already have an account? <a href="login.html">Login here</a>.</p>
+    <p>Go back to <a href="index.html">Home</a>.</p>
+
+    <script>
+        document.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            
+            if (email && password) {
+                const url = "http://127.0.0.1:8000/api/auth/login";
+                const data = {
+                    email: email,
+                    password: password
+                };
+
+                let options = {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                };
+
+                fetch(url, options)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error("Network response was not ok.");
+                        }
+                    })
+                    .then(data => {
+                        const header = document.getElementById("blabla");
+                        localStorage.setItem("token", data.token['access_token']);
+                        localStorage.setItem("refresh_token", data.token['refresh_token']);
+                        alert("Login successful! Token: " + data.token['access_token']);
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("Registration failed. Please try again.");
+                    });
+
+            } else {
+                alert("Please fill in all fields.");
+            }
+        });
+
+    </script>
+</body>
+</html>
