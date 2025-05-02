@@ -23,7 +23,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('logout', [AuthController::class, 'logout'])->middleware('authenticated');
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me'])->middleware('authenticated');
-    
+
     Route::prefix('password')->group(function () {
         Route::post('forgot', [PasswordResetController::class, 'sendResetLinkEmail']);
         Route::post('reset', [PasswordResetController::class, 'reset']);
@@ -56,7 +56,8 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         Route::get('{report}/comments', [ReportCommentController::class, 'restore']);
         Route::get('{report}', [ReportController::class, 'getReportData']);
     });
-
+    
+    Route::get('/crowdstream', [ReportController::class, 'getCrowdstream']);
     Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
     Route::get('/programs', [ProgramController::class, 'index']);
 });
