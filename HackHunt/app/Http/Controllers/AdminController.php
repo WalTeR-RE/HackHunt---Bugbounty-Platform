@@ -29,7 +29,6 @@ class AdminController extends Controller
                 'status' => 422
             ];
         }
-
         
         $admin = $this->adminService->createSuperUser($request);
 
@@ -39,5 +38,44 @@ class AdminController extends Controller
             'admin' => $admin
         ]);
     }
+
+    public function updateSuperUser(Request $request, $uuid)
+{
+    $validator = Validator::make($request->all(), Users::validationRules(true, $uuid));
+    
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'errors' => $validator->errors(),
+        ], 422);
+    }
+
+    $admin = $this->adminService->updateSuperUser($request, $uuid);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Admin updated successfully',
+        'admin' => $admin
+    ]);
+}
+
+public function destroySuperUser($uuid)
+{
+    $admin = $this->adminService->destroySuperUser($uuid);
+
+    if (!$admin) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Admin not found',
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Admin deleted successfully',
+        'admin' => $admin
+    ]);
+}
+
 
 }

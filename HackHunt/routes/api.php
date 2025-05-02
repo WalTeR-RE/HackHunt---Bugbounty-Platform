@@ -59,6 +59,7 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
     
     Route::get('/crowdstream', [ReportController::class, 'getCrowdstream']);
     Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
+    Route::get('/programs/{uuid}/hallofFame', [ReportController::class, 'getHallOfFame']);
     Route::get('/programs', [ProgramController::class, 'index']);
 });
 

@@ -43,5 +43,51 @@ class AdminService
         return $user;
     }
 
+    public function updateSuperUser($request, $uuid)
+    {
+        $user = Users::where('uuid', $uuid)->firstOrFail();
+    
+        $updatableFields = [
+            'name', 'email', 'password', 'role_id', 'nickname', 'about_me',
+            'profile_picture', 'background_picture', 'rank', 'country',
+            'total_points', 'accuracy', 'links', 'phone_number', 'birthday'
+        ];
+    
+        foreach ($updatableFields as $field) {
+            if ($request->has($field)) {
+                if ($field === 'password') {
+                    $user->password = Hash::make($request->password);
+                } elseif ($field === 'links') {
+                    $user->links = json_encode($request->links);
+                } else {
+                    $user->$field = $request->$field;
+                }
+            }
+        }
+    
+        $user->email_verified_at = $user->email_verified_at ?? now();
+        $user->vulnerabilities_count = $user->vulnerabilities_count ?? 0;
+        $user->engagement_count = $user->engagement_count ?? 0;
+        $user->active = true;
+        $user->verified = true;
+    
+        $user->save();
+    
+        return $user;
+    }
+    
+    public function destroySuperUser($uuid)
+    {
+        $user = Users::where('uuid', $uuid)->first();
+    
+        if (!$user) {
+            return null;
+        }
+    
+        $user->delete();
+    
+        return $user;
+    }
+    
     
 }
