@@ -23,18 +23,20 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('logout', [AuthController::class, 'logout'])->middleware('authenticated');
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('me', [AuthController::class, 'me'])->middleware('authenticated');
-
+    
+    Route::prefix('password')->group(function () {
+        Route::post('forgot', [PasswordResetController::class, 'sendResetLinkEmail']);
+        Route::post('reset', [PasswordResetController::class, 'reset']);
+    });
 });
 
 Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], function () {
     Route::post('/createSuperUser', [AdminController::class, 'createSuperUser']);
     Route::put('/editSuperUser/{uuid}', [AdminController::class, 'updateSuperUser']);
     Route::delete('/removeSuperUser/{uuid}', [AdminController::class, 'destroySuperUser']);
-    Route::get('/programs', [ProgramController::class, 'index']);
     Route::put('/createProgram', [ProgramController::class, 'store']);
     Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
     Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
-    Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
     Route::get('/programs/{uuid}/reports', [ReportController::class, 'getProgramReports']);
 });
 
@@ -54,16 +56,16 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         Route::get('{report}/comments', [ReportCommentController::class, 'restore']);
         Route::get('{report}', [ReportController::class, 'getReportData']);
     });
+
+    Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
+    Route::get('/programs', [ProgramController::class, 'index']);
 });
 
 
 
 
 
-Route::prefix('password')->group(function () {
-    Route::post('forgot', [PasswordResetController::class, 'sendResetLinkEmail']);
-    Route::post('reset', [PasswordResetController::class, 'reset']);
-});
+
 
 
 
