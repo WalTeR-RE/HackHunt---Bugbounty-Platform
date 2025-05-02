@@ -56,10 +56,19 @@ class Program extends Model
                     ->select('uuid','name');
     }
     
+    public function insertProgramUser($userId)
+    {
+        return $this->owners()->attach($userId);
+    }
+    public function removeProgramUser($userId)
+    {
+        return $this->owners()->detach($userId);
+    }
     
+    public function getRouteKeyName()
+    {
+    return 'program_id';
+    }
     
-    
-    
-
 
 }

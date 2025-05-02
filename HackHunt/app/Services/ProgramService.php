@@ -24,6 +24,34 @@ class ProgramService{
         
         return $range;
     }
+    public function getAllPrograms(Request $request)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        $isAdmin = ($user->role_id === 3);
+
+        if ($isAdmin) {
+            return Program::all();
+        }
+        $user_private_programs = DB::table('programs')
+            ->join('program_user', 'programs.program_id', '=', 'program_user.program_id')
+            ->where('program_user.user_id', $user->uuid)
+            ->where('programs.is_private', true)
+            ->select('programs.*')
+            ->get();
+
+        $public_programs = DB::table('programs')
+            ->where('is_private', false)
+            ->select('programs.*')
+            ->get();
+        $programs = $public_programs->merge($user_private_programs);
+        $programs = $programs->map(function ($program) {
+            $program->rewards = json_decode($program->rewards);
+            $program->scope = json_decode($program->scope);
+            return $program;
+        });
+
+        return $programs;
+    }
     public function createProgram(Request $request){
         $payload = [
             'program_id'=>(string)Str::uuid(),
@@ -44,6 +72,17 @@ class ProgramService{
         ];
 
         $program = Program::create($payload);
+        if ($program) {
+            $user = AuthenticateUser::authenticatedUser($request);
+            $program->insertProgramUser($user->uuid);
+        }
+        if (!$program) {
+            return [
+                'success' => false,
+                'message' => 'Failed to create program',
+                'status' => 500
+            ];
+        }
 
         return [
             'success' => true,
@@ -51,10 +90,40 @@ class ProgramService{
             'Program' => $program,
             'status' => 201
         ];
-
-
-
     }
+
+    public function getProgramById($uuid, Request $request)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+    
+        if (!$user) {
+            throw new \Exception('Unauthorized: No user found.', 401);
+        }
+    
+        $isAdmin = ($user->role_id === 3);
+        $program = Program::where('program_id', $uuid)->first();
+        if (!$isAdmin|| $program->is_private === true) {
+            $isOwner = ProgramValidation::userOwnsProgram($uuid, $user->uuid);
+            
+            $hasAccessToPrivate = DB::table('program_user')
+                ->join('programs', 'program_user.program_id', '=', 'programs.program_id')
+                ->where('programs.program_id', $uuid)
+                ->where('programs.is_private', true)
+                ->where('program_user.user_id', $user->uuid)
+                ->exists();
+    
+            if (!$isOwner && !$hasAccessToPrivate) {
+                throw new \Exception('Forbidden: Requires admin or owner privileges', 403);
+            }
+        }
+    
+        if (!$program) {
+            throw new \Exception('Program not found', 404);
+        }
+    
+        return $program;
+    }
+    
     public function updateProgram(Request $request, $uuid)
     {
         $user = AuthenticateUser::authenticatedUser($request);

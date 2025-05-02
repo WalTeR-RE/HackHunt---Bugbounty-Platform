@@ -15,6 +15,33 @@ class ProgramController extends Controller
         $this->programService = $programService;
     }
 
+    public function index(Request $request)
+    {
+        try {
+            $programs = $this->programService->getAllPrograms($request);
+            return response()->json($programs);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch programs',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function getProgramData(Request $request, string $uuid)
+    {
+        try {
+            $program = $this->programService->getProgramById($uuid,$request);
+            return response()->json($program);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch program data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function update(Request $request, $uuid)
     {
 

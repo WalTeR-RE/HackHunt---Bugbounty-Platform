@@ -120,4 +120,23 @@ class ReportController extends Controller
         ]);
         return response()->json(['message' => 'Report published'], 200);
     }
+
+    public function getProgramReports(Request $request, $program)
+{
+    $reporter = AuthenticateUser::authenticatedUser($request);
+
+    if (!$reporter) {
+        return response()->json(['error' => 'No User Found with this data.'], 400);
+    }
+
+    
+    if (!ProgramValidation::userOwnsProgram($program, $reporter->uuid) && $reporter->role_id != 3) {
+        return response()->json(['error' => 'You can\'t do this.'], 403);
+    }
+
+    $reports = Report::where('program_id', $program)->get();
+
+    return response()->json($reports);
+}
+
 }
