@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AuthenticateAdmin;
@@ -26,10 +27,15 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], function () {
-    Route::get('/', [AuthController::class, 'me'])->middleware(['role:admin|player|test|Test']);
-    Route::get('/welcome', function () {
-        return view('welcome');
-    });
+    Route::post('/createSuperUser', [AdminController::class, 'createSuperUser']);
+    Route::put('/editSuperUser/{uuid}', [AdminController::class, 'updateSuperUser']);
+    Route::delete('/removeSuperUser/{uuid}', [AdminController::class, 'destroySuperUser']);
+    Route::get('/programs', [ProgramController::class, 'index']);
+    Route::put('/createProgram', [ProgramController::class, 'store']);
+    Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
+    Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
+    Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
+    Route::get('/programs/{uuid}/reports', [ReportController::class, 'getProgramReports']);
 });
 
 Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::class], function () {
