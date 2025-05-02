@@ -34,16 +34,13 @@ Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], f
     Route::post('/createSuperUser', [AdminController::class, 'createSuperUser']);
     Route::put('/editSuperUser/{uuid}', [AdminController::class, 'updateSuperUser']);
     Route::delete('/removeSuperUser/{uuid}', [AdminController::class, 'destroySuperUser']);
-    Route::put('/createProgram', [ProgramController::class, 'store']);
-    Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
-    Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
-    Route::get('/programs/{uuid}/reports', [ReportController::class, 'getProgramReports']);
 });
 
 Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::class], function () {
     Route::put('/createProgram', [ProgramController::class, 'store']);
     Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
     Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
+    Route::get('/programs/{program_id}/reports', [ReportController::class, 'getProgramReports']);
 });
 
 
