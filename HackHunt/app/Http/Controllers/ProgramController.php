@@ -139,4 +139,116 @@ class ProgramController extends Controller
             ], $statusCode);
         }
     }
+
+    public function inviteResearcher(Request $request, string $uuid)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $this->programService->inviteResearcher($request, $uuid);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invitation sent successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send invitation',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function removeResearcher(Request $request, string $uuid)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $this->programService->removeResearcher($request, $uuid);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Researcher removed successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove researcher',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function acceptrejectInvite(Request $request, string $uuid)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+                'status' => 'required|in:accept,reject',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $this->programService->acceptrejectInvite($request, $uuid);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invitation accepted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to accept invitation',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function leaveProgram(Request $request, string $uuid)
+    {
+        try {
+            $this->programService->leaveProgram($request, $uuid);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Left program successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to leave program',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function getInvites(Request $request)
+    {
+        try {
+            $invites = $this->programService->getInvites($request);
+
+            return response()->json($invites);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch invites',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

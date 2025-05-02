@@ -16,6 +16,7 @@ return new class extends Migration
             $table->uuid('program_id');
             $table->uuid('user_id');
             $table->enum('status',['Accepted','Rejected','Expired','Pending'])->default('Pending');
+            $table->string('invited_by');
             $table->timestamp('expire_at');
             $table->timestamps();
 

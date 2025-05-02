@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Helper\AuthenticateUser;
 use Illuminate\Support\Str;
+use App\Models\ProgramInvite;
 use function Symfony\Component\Clock\now;
 
 class ProgramService{
@@ -169,5 +170,62 @@ class ProgramService{
 
         $program = Program::where('program_id', $uuid)->firstOrFail();
         return $program->delete();
+    }
+
+    public function inviteResearcher($request, $uuid)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        if (!$user) {
+            return [
+                'success' => false,
+                'message' => 'No User Found with this data.',
+                'status' => 400
+            ];
+        }
+        $program = Program::where('program_id', $uuid)->first();
+        if (!$program) {
+            return [
+                'success' => false,
+                'message' => 'Program not found',
+                'status' => 404
+            ];
+        }
+
+        $allowed = ProgramValidation::userOwnsProgram($uuid, $user->uuid);
+        if (!$allowed && $user->role_id !== 3) {
+            return [
+                'success' => false,
+                'message' => 'Forbidden',
+                'status' => 401
+            ];
+        }
+        $researcher = Users::where('email', $request->email)->first();
+        if (!$researcher) {
+            return [
+                'success' => false,
+                'message' => 'Researcher not found',
+                'status' => 404
+            ];
+        }
+
+        ProgramInvite::updateOrCreate(
+            [
+                'program_id' => $uuid,
+                'user_id' => $researcher->uuid,
+            ],
+            [
+                'status' => 'Pending', 
+                'invited_by' => $user->uuid,
+                'expire_at' => Carbon::now()->addDays(7),
+            ]
+        );
+        
+
+        
+        return [
+            'success' => true,
+            'message' => 'Researcher invited successfully',
+            'status' => 200
+        ];
     }
 }

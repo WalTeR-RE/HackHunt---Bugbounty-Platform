@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Program Details – HackHunt</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="favicon.ico" />
+</head>
+<body class="bg-gray-950 text-white font-sans">
+
+  <!-- Navbar -->
+  <header class="bg-gray-900 shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-purple-500">HackHunt</h1>
+      <nav class="space-x-6 hidden md:block">
+        <a href="/" class="hover:text-purple-400">Home</a>
+        <a href="Programs.html" class="hover:text-purple-400">Back to Programs</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Program Detail Section -->
+  <section id="programDetail" class="py-16 px-6 max-w-5xl mx-auto">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl font-bold text-purple-500" id="programName">Loading...</h2>
+      <p class="text-gray-400 mt-2" id="programStatus"></p>
+    </div>
+    <div class="bg-gray-900 p-8 rounded-xl shadow-lg">
+      <p class="text-lg text-gray-300 mb-6" id="programDescription"></p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h4 class="text-purple-400 font-semibold mb-2">Bounty Range</h4>
+          <p class="text-gray-300" id="bountyRange"></p>
+        </div>
+        <div>
+          <h4 class="text-purple-400 font-semibold mb-2">Total Reports</h4>
+          <p class="text-gray-300" id="numberOfReports"></p>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-purple-400 font-semibold mb-3">Rewards</h4>
+        <div id="rewards" class="flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-gray-900 text-center py-6 text-gray-500">
+    &copy; 2025 HackHunt. All rights reserved.
+  </footer>
+
+ 
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      const params = new URLSearchParams(window.location.search);
+      const uuid = params.get("uuid");
+      const token = localStorage.getItem("token");
+
+      if (!uuid || !token) {
+        alert("Missing program UUID or token.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/researchers/programs/${uuid}`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        const program = await response.json();
+
+        document.getElementById("programName").textContent = program.name;
+        document.getElementById("programStatus").textContent = `Status: ${program.status}`;
+        document.getElementById("programDescription").textContent = program.description;
+        document.getElementById("bountyRange").textContent = program.bounty_range;
+        document.getElementById("numberOfReports").textContent = program.number_of_reports;
+
+        const rewardsContainer = document.getElementById("rewards");
+        program.rewards.forEach(reward => {
+          const badge = document.createElement("span");
+          badge.className = "bg-purple-700 text-white px-3 py-1 rounded-full text-sm";
+          badge.textContent = `${reward.type.toUpperCase()}: ${reward.amount}`;
+          rewardsContainer.appendChild(badge);
+        });
+      } catch (err) {
+        console.error("Failed to load program details:", err);
+        document.getElementById("programName").textContent = "Error loading program.";
+      }
+    });
+  </script>
+
+</body>
+</html>
