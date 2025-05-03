@@ -6,9 +6,12 @@ use App\Helper\AuthenticateUser;
 use App\Helper\ProgramValidation;
 use App\Models\Program;
 use App\Models\Users;
+use Faker\Extension\Helper;
 use Illuminate\Support\Facades\Validator;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
+use App\Services\MailService;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -79,19 +82,27 @@ class AuthController extends Controller
 
     // Test Only will remove it later
     public function test(Request $request)
-    {
-
-        $program = Program::find("93ed0cda-df8f-4618-ad6e-b087f25d08fe");
-        
-        $user = AuthenticateUser::authenticatedUser($request);
-        $case = ProgramValidation::userOwnsProgram("93ed0cda-df8f-4618-ad6e-b087f25d08fe",$user->uuid);
-        
-       /* if (!$program) {
-            return response()->json(['error' => 'Program not found'], 404);
-        }
-    
-        $owners = $program->owners; 
-        return ($owners);*/
+{
+    $user = AuthenticateUser::authenticatedUser($request);
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized'
+        ], 401);
     }
+
+    $data = [
+        'name' => $user->name,
+        'resetLink' => url('/reset-password/blabla')
+    ];
+
+    Mail::to("email@gmail.com")->send(new MailService($data, 'reset'));
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Email sent successfully'
+    ]);
+}
+
     
 }

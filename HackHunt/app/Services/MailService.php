@@ -3,51 +3,47 @@
 namespace App\Services;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class ResetMail extends Mailable
+class MailService extends Mailable
 {
     use Queueable, SerializesModels;
+
+    public $data;
+    public $emailType;
 
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct($data, $emailType)
     {
-        //
+        $this->data = $data;
+        $this->emailType = $emailType;
     }
 
     /**
-     * Get the message envelope.
+     * Build the message.
      */
-    public function envelope(): Envelope
-    {
-        return new Envelope(
-            subject: 'Reset Mail',
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            view: 'view.name',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+    public function build()
+    {   
+        switch ($this->emailType) {
+            case 'reset':
+                return $this->subject('Password Reset Request')
+                            ->view('emails.reset_password')
+                            ->with('data', $this->data);
+            case 'invite':
+                return $this->subject('You Have Been Invited!')
+                            ->view('emails.invitation')
+                            ->with('data', $this->data);
+            case 'bounty':
+                return $this->subject('Bounty Program Update')
+                            ->view('emails.bounty_awarded')
+                            ->with('data', $this->data);
+            default:
+                return $this->subject('Notification')
+                            ->view('emails.generic')
+                            ->with('data', $this->data);
+        }
     }
 }
