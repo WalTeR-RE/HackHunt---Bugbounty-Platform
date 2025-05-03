@@ -42,8 +42,8 @@ async function try_refresh_access_token() {
     });
     const data = await res1.json();
     if (data.success === true) {
-        localStorage.setItem("access_token", result.access_token['access_token']);
-        localStorage.setItem("refresh_token", result.access_token['refresh_token']);
+        localStorage.setItem("token", data.token['access_token']);
+        localStorage.setItem("refresh_token", data.token['refresh_token']);
         return true;       
     }
 

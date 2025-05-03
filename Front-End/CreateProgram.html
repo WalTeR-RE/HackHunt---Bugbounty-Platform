@@ -112,7 +112,6 @@
 
         // Append the logo file if exists
         if (form.logo.files.length > 0) {
-          alert("Logo file selected.");
             formData.append("logo", form.logo.files[0]);
         }
 
@@ -133,6 +132,7 @@
                 alert(result.error || "Submission failed.");
             } else {
                 alert("Program created successfully!");
+                window.location.href = "Programs.html";
                 form.reset();
             }
 

@@ -300,7 +300,6 @@ class ProgramService{
             ]);
         }
         
-        // TODO: Send email to researcher
         
         $data = [
             'name' => $researcher->name,
