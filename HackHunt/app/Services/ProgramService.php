@@ -13,6 +13,8 @@ use App\Helper\AuthenticateUser;
 use Illuminate\Support\Str;
 use App\Models\ProgramInvite;
 use function Symfony\Component\Clock\now;
+use App\Services\MailService;
+use Illuminate\Support\Facades\Mail;
 
 class ProgramService{
 
@@ -300,6 +302,15 @@ class ProgramService{
         
         // TODO: Send email to researcher
         
+        $data = [
+            'name' => $researcher->name,
+            'program_name' => $program->name,
+            'link' => url('https://google.com'),
+        ];
+    
+        Mail::to($researcher->email)->send(new MailService($data, 'invite'));
+
+
         return [
             'success' => true,
             'message' => 'Researcher invited successfully',
