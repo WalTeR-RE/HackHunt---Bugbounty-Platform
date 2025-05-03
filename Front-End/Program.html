@@ -1,97 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Program Details – HackHunt</title>
+  <meta charset="UTF-8">
+  <title>Program Details</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="favicon.ico" />
+  <script src="scripts/auth.js"></script>
 </head>
-<body class="bg-gray-950 text-white font-sans">
+<body class="bg-gray-950 text-white min-h-screen p-16">
+  <div class="max-w-9xl mx-auto">
+    <h1 class="text-4xl font-bold text-purple-400 mb-6">Program Details</h1>
+    <div id="programDetails" class="bg-gray-900 rounded-xl p-8 shadow-lg mb-6"></div>
+  </div>
 
-  <!-- Navbar -->
-  <header class="bg-gray-900 shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-purple-500">HackHunt</h1>
-      <nav class="space-x-6 hidden md:block">
-        <a href="/" class="hover:text-purple-400">Home</a>
-        <a href="Programs.html" class="hover:text-purple-400">Back to Programs</a>
-      </nav>
-    </div>
-  </header>
-
-  <!-- Program Detail Section -->
-  <section id="programDetail" class="py-16 px-6 max-w-5xl mx-auto">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl font-bold text-purple-500" id="programName">Loading...</h2>
-      <p class="text-gray-400 mt-2" id="programStatus"></p>
-    </div>
-    <div class="bg-gray-900 p-8 rounded-xl shadow-lg">
-      <p class="text-lg text-gray-300 mb-6" id="programDescription"></p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <h4 class="text-purple-400 font-semibold mb-2">Bounty Range</h4>
-          <p class="text-gray-300" id="bountyRange"></p>
-        </div>
-        <div>
-          <h4 class="text-purple-400 font-semibold mb-2">Total Reports</h4>
-          <p class="text-gray-300" id="numberOfReports"></p>
-        </div>
-      </div>
-
-      <div>
-        <h4 class="text-purple-400 font-semibold mb-3">Rewards</h4>
-        <div id="rewards" class="flex flex-wrap gap-2"></div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="bg-gray-900 text-center py-6 text-gray-500">
-    &copy; 2025 HackHunt. All rights reserved.
-  </footer>
-
- 
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
-      const params = new URLSearchParams(window.location.search);
-      const uuid = params.get("uuid");
+      
+      const isAuthenticated = await authenticated(); // Renamed the variable to avoid conflict
+      if (!isAuthenticated) {
+        window.location.href = "Login.html"; // Redirect to Programs page if already logged in
+      }
       const token = localStorage.getItem("token");
+      const urlParams = new URLSearchParams(window.location.search);
+      const programUUID = urlParams.get("uuid");
 
-      if (!uuid || !token) {
-        alert("Missing program UUID or token.");
+      if (!programUUID) {
+        window.location.href = "Programs.html";
         return;
       }
 
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/researchers/programs/${uuid}`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/researchers/programs/${programUUID}`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           }
         });
 
+        if (!response.ok) {
+          throw new Error("Failed to fetch program details");
+        }
+
         const program = await response.json();
+        const container = document.getElementById("programDetails");
 
-        document.getElementById("programName").textContent = program.name;
-        document.getElementById("programStatus").textContent = `Status: ${program.status}`;
-        document.getElementById("programDescription").textContent = program.description;
-        document.getElementById("bountyRange").textContent = program.bounty_range;
-        document.getElementById("numberOfReports").textContent = program.number_of_reports;
+        // Categorize rewards into P4, P3, P2, P1 based on amount
+        const rewardCategories = {
+          "P4 - Low": [program.rewards[0]],
+          "P3 - Medium": [program.rewards[1]],
+          "P2 - High": [program.rewards[2]],
+          "P1 - Critical": [program.rewards[3]]
+        };
 
-        const rewardsContainer = document.getElementById("rewards");
-        program.rewards.forEach(reward => {
-          const badge = document.createElement("span");
-          badge.className = "bg-purple-700 text-white px-3 py-1 rounded-full text-sm";
-          badge.textContent = `${reward.type.toUpperCase()}: ${reward.amount}`;
-          rewardsContainer.appendChild(badge);
+        // Function to return the correct background color for each category
+        const getCategoryColor = (category) => {
+          switch(category) {
+            case "P4 - Low":
+              return "bg-green-500";
+            case "P3 - Medium":
+              return "bg-yellow-500";
+            case "P2 - High":
+              return "bg-orange-600";
+            case "P1 - Critical":
+              return "bg-red-600";
+            default:
+              return "bg-gray-500";
+          }
+        };
+
+        // Render rewards in categorized groups with color styling
+        const renderRewards = (category) => {
+          return rewardCategories[category].map(r =>
+            `<span class="inline-block ${getCategoryColor(category)} text-white px-3 py-1 rounded text-xs mr-2 mb-1">${category}: ${r.amount}</span>`
+          ).join("");
+        };
+
+        const logoUrl = `http://127.0.0.1:8000/storage/${program.logo}`;
+container.innerHTML = `
+  <div class="flex flex-col md:flex-col items-center md:items-start mb-6">
+    <div class="flex flex-col md:flex-col mb-6 gap-6">
+  <img src="${logoUrl}" alt="${program.name} Logo" class="w-128 h-96 object-cover rounded-xl border border-purple-400 mb-4 md:mb-0" />
+  <button id="submitReportBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded shadow">
+    Submit Report
+  </button>
+</div>
+
+
+
+
+    <div>
+      <h2 class="text-5xl font-bold text-purple-300 mb-1">${program.name}</h2>
+      <p class="text-md text-gray-300">${program.fast_description}</p>
+    </div>
+  </div>
+
+  <!-- Reward categories -->
+  <div class="mb-4">
+    ${renderRewards("P4 - Low")}
+    ${renderRewards("P3 - Medium")}
+    ${renderRewards("P2 - High")}
+    ${renderRewards("P1 - Critical")}
+  </div>
+
+  <!-- Program Metadata -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-l text-gray-400">
+    <p><strong>Bounty Range:</strong> ${program.bounty_range}</p>
+    <p><strong>Average Bounty:</strong> $${program.avg_bounty}</p>
+    <p><strong>Reports:</strong> ${program.number_of_reports}</p>
+    <p><strong>Status:</strong> ${program.status}</p>
+    <p><strong>Validation Time:</strong> ${program.validation_time === 0 ? 'N/A' : program.validation_time + ' Days'}</p>
+    <p><strong>Started At:</strong> ${new Date(program.started_at).toLocaleDateString()}</p>
+    <p><strong>Vulnerabilities Rewarded:</strong> ${program.vulnerabilities_rewarded}</p>
+  </div>
+
+  <!-- Scope and Rules -->
+  <div class="mb-4">
+    <p class="text-d text-purple-400 font-semibold mb-1">Target Description:</p>
+    <p class="text-l text-gray-300 mb-2">${program.target_description}</p>
+
+   <p class="text-d text-purple-400 font-semibold mb-2">Scope:</p>
+<div class="overflow-x-auto rounded-lg border border-gray-700">
+  <table class="min-w-full text-left text-sm text-gray-300">
+    <thead class="bg-gray-800 text-gray-400">
+      <tr>
+        <th scope="col" class="px-4 py-3">Target</th>
+        <th scope="col" class="px-4 py-3">Type</th>
+        <th scope="col" class="px-4 py-3">In Scope</th>
+      </tr>
+    </thead>
+    <tbody class="bg-gray-900 divide-y divide-gray-700">
+      ${program.scope.map(item => {
+        // Support structured items or fallback to string
+        if (typeof item === 'string') {
+          return `
+            <tr>
+              <td class="px-4 py-3">${item}</td>
+              <td class="px-4 py-3 text-gray-500">—</td>
+              <td class="px-4 py-3 text-green-500 font-semibold">Yes</td>
+            </tr>`;
+        } else {
+          return `
+            <tr>
+              <td class="px-4 py-3">${item.target}</td>
+              <td class="px-4 py-3">${item.type || "Web"}</td>
+              <td class="px-4 py-3 ${item.in_scope ? "text-green-500" : "text-red-500"} font-semibold">
+                ${item.in_scope ? "Yes" : "No"}
+              </td>
+            </tr>`;
+        }
+      }).join("")}
+    </tbody>
+  </table>
+</div>
+
+  </div>
+
+  <div>
+    <p class="text-d text-purple-400 font-semibold mb-1">Program Rules:</p>
+    <p class="text-l text-gray-400 whitespace-pre-line">${program.description_rules}</p>
+  </div>
+`;
+
+
+        document.getElementById("submitReportBtn").addEventListener("click", () => {
+          window.location.href = `SubmitReport.html?uuid=${programUUID}`;
         });
+
       } catch (err) {
-        console.error("Failed to load program details:", err);
-        document.getElementById("programName").textContent = "Error loading program.";
+        console.error(err);
+        alert("Error loading program data.");
       }
     });
   </script>
-
 </body>
 </html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Program</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="scripts/auth.js"></script>
+</head>
+<body class="bg-gray-950 text-white font-sans p-8">
+  <div class="max-w-3xl mx-auto bg-gray-900 p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-bold text-purple-400 mb-4">Create a New Program</h2>
+    
+    <form id="programForm" class="space-y-4" enctype="multipart/form-data">
+      <!-- Program name and logo -->
+      <input type="text" name="name" placeholder="Program Name" required class="w-full p-2 rounded bg-gray-800 text-white"/>
+      
+      <!-- Logo Upload -->
+      <label for="logo" class="block text-gray-300">Program Logo (JPEG, PNG, JPG only, max 2MB)</label>
+      <input type="file" name="logo" id="logo" accept="image/jpeg, image/png, image/jpg" class="w-full p-2 rounded bg-gray-800 text-white"/>
+      
+      
+      <!-- Private Program Checkbox -->
+      <label class="flex items-center space-x-2">
+        <input type="checkbox" name="is_private" class="form-checkbox bg-gray-700 text-purple-500"> 
+        <span>Private Program?</span>
+      </label>
+
+      <textarea name="fast_description" placeholder="Fast Description" required class="w-full p-2 rounded bg-gray-800 text-white"></textarea>
+      <textarea name="target_description" placeholder="Target Description" required class="w-full p-2 rounded bg-gray-800 text-white"></textarea>
+      <textarea name="description_rules" placeholder="Rules Description" required class="w-full p-2 rounded bg-gray-800 text-white"></textarea>
+      
+      <!-- Scope input (comma separated) -->
+      <input type="text" name="scope" placeholder="Scope (comma separated)" required class="w-full p-2 rounded bg-gray-800 text-white"/>
+
+      <select name="status" class="w-full p-2 rounded bg-gray-800 text-white" required>
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+      
+      <!-- Rewards input -->
+      <div>
+        <label class="block mb-1">Rewards (enter ranges, comma separated like 100-200,200-300)</label>
+        <div class="space-y-2">
+          <div>
+            <input type="text" name="rewards[0][amount]" placeholder="Reward 1 amount (e.g., 100-200)" required class="w-full p-2 rounded bg-gray-800 text-white"/>
+            <select name="rewards[0][type]" required class="w-full p-2 rounded bg-gray-800 text-white">
+              <option value="cash">Cash</option>
+              <option value="points">Points</option>
+            </select>
+          </div>
+          <div>
+            <input type="text" name="rewards[1][amount]" placeholder="Reward 2 amount (e.g., 200-300)" required class="w-full p-2 rounded bg-gray-800 text-white"/>
+            <select name="rewards[1][type]" required class="w-full p-2 rounded bg-gray-800 text-white">
+              <option value="cash">Cash</option>
+              <option value="points">Points</option>
+            </select>
+          </div>
+          <div>
+            <input type="text" name="rewards[2][amount]" placeholder="Reward 3 amount (e.g., 300-400)" required class="w-full p-2 rounded bg-gray-800 text-white"/>
+            <select name="rewards[2][type]" required class="w-full p-2 rounded bg-gray-800 text-white">
+              <option value="cash">Cash</option>
+              <option value="points">Points</option>
+            </select>
+          </div>
+          <div>
+            <input type="text" name="rewards[3][amount]" placeholder="Reward 4 amount (e.g., 400-500)" required class="w-full p-2 rounded bg-gray-800 text-white"/>
+            <select name="rewards[3][type]" required class="w-full p-2 rounded bg-gray-800 text-white">
+              <option value="cash">Cash</option>
+              <option value="points">Points</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+        Create Program
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async function() {
+        const isAuthenticated = await authenticated(); // Check if user is authenticated
+        if (!isAuthenticated) {
+            window.location.href = "Login.html"; // Redirect to login page if not authenticated
+        }
+    });
+    document.getElementById("programForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData();
+        formData.append("name", form.name.value);
+        formData.append("fast_description", form.fast_description.value);
+        formData.append("target_description", form.target_description.value);
+        formData.append("is_private", form.is_private.checked ? 1 : 0);
+        
+        const scopeValues = form.scope.value.split(',').map(value => value.trim()); // Split by comma and trim whitespace
+        scopeValues.forEach((value, index) => {
+        formData.append("scope[]", value); // Append each value in the array
+        });
+
+        formData.append("description_rules", form.description_rules.value);
+        formData.append("status", form.status.value);
+
+        // Append rewards
+        for (let i = 0; i < 4; i++) {
+            formData.append(`rewards[${i}][type]`, form.querySelector(`[name="rewards[${i}][type]"]`).value);
+            formData.append(`rewards[${i}][amount]`, form.querySelector(`[name="rewards[${i}][amount]"]`).value);
+        }
+
+        // Append the logo file if exists
+        if (form.logo.files.length > 0) {
+          alert("Logo file selected.");
+            formData.append("logo", form.logo.files[0]);
+        }
+
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch("http://127.0.0.1:8000/api/customers/createProgram", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                alert(result.error || "Submission failed.");
+            } else {
+                alert("Program created successfully!");
+                form.reset();
+            }
+
+        } catch (err) {
+            console.error("Error:", err);
+            alert("An unexpected error occurred.");
+        }
+    });
+</script>
+</body>
+</html>

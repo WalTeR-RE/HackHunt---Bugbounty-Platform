@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Available Programs – HackHunt</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="scripts/auth.js"></script>
   <link rel="icon" href="favicon.ico" />
 </head>
 <body class="bg-gray-950 text-white font-sans">
@@ -12,21 +13,38 @@
   <!-- Navbar -->
   <header class="bg-gray-900 shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-purple-500">HackHunt</h1>
-      <nav class="space-x-6 hidden md:block">
-        <a href="/" class="hover:text-purple-400">Home</a>
-        <a href="#programs" class="hover:text-purple-400">Programs</a>
-        <a href="#halloffame" class="hover:text-purple-400">Hall of Fame</a>
-        <a href="#join" class="bg-purple-600 px-4 py-2 rounded-xl hover:bg-purple-700 transition">Join Now</a>
+      <h1 class="text-4xl font-bold text-purple-500">HackHunt</h1>
+      <nav class="text-xl space-x-6 hidden md:block">
+        <a href="index.html" class="hover:text-purple-400">Home</a>
+        <a href="Programs.html" class="hover:text-purple-400">Programs</a>
+        <a href="HallOfFame.html" class="hover:text-purple-400">Hall of Fame</a>
       </nav>
     </div>
   </header>
 
+  <!-- Search Section -->
+  <div class="bg-gray-900 px-6 py-4 w-full">
+    <!-- Search + Filters Wrapper -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Search Field -->
+      <div class="flex items-center bg-gray-800 rounded border border-gray-700 px-3 py-2 w-full md:w-1/2">
+        <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search by keyword or phrase..."
+          class="bg-transparent outline-none text-white w-full" oninput="searchPrograms()" />
+      </div>
+  </div>
+  
+
+
   <!-- Programs Section -->
   <section id="programs" class="py-20 bg-gray-950">
-    <div class="max-w-6xl mx-auto px-6 text-center">
-      <h2 class="text-3xl font-bold text-purple-500 mb-8">Available Bug Bounty Programs</h2>
-      <div id="programList" class="grid md:grid-cols-3 gap-6"></div>
+    <div class="max-w-8xl mx-auto px-6 text-center">
+      <h2 class="text-5xl font-bold text-purple-500 mb-8">Available Bug Bounty Programs</h2>
+      <div id="programList" class="grid md:grid-cols-4 gap-6"></div>
     </div>
   </section>
 
@@ -38,45 +56,115 @@
   <!-- Script -->
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("You must be logged in to view available programs.");
-        return;
+      
+      const isAuthenticated = await authenticated(); // Renamed the variable to avoid conflict
+      if (!isAuthenticated) {
+        window.location.href = "Login.html"; // Redirect to Programs page if already logged in
       }
-
+      const token = localStorage.getItem("token");
       const response = await fetch("http://127.0.0.1:8000/api/researchers/programs", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         }
       });
-
+  
       const programs = await response.json();
       const container = document.getElementById("programList");
-
-      programs.forEach(program => {
-        const card = document.createElement("div");
-        card.className = "bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition text-left";
-
-        const rewards = program.rewards.map(r => `<span class="inline-block bg-purple-700 text-white px-2 py-1 rounded text-xs mr-2 mb-1">${r.type.toUpperCase()}: ${r.amount}</span>`).join("");
-
-        card.innerHTML = `
-          <h3 class="text-xl font-semibold text-purple-400 mb-2 cursor-pointer hover:underline">
-  <a href="Program.html?uuid=${program.program_id}">${program.name}</a>
-</h3>
-          <p class="text-sm text-gray-300 mb-3">${program.fast_description}</p>
-          <div class="mb-3">
-            ${rewards}
-          </div>
-          <p class="text-xs text-gray-400">Bounty Range: ${program.bounty_range}</p>
-          <p class="text-xs text-gray-400">Reports: ${program.number_of_reports}</p>
-          <p class="text-xs text-gray-400">Status: <span class="font-semibold text-green-400">${program.status}</span></p>
-        `;
-
-        container.appendChild(card);
-      });
+  
+      // Function to render the program card
+      function renderPrograms(filteredPrograms) {
+        container.innerHTML = ''; // Clear previous programs
+        filteredPrograms.forEach(program => {
+          const card = document.createElement("div");
+          card.className = "bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition text-left";
+  
+          // Set up the logo URL
+          const logoUrl = `http://127.0.0.1:8000/storage/${program.logo}`;
+  
+          // Set up the private program indicator
+          const privateLabel = program.is_private
+            ? '<span class="bg-red-600 text-white px-2 py-1 rounded text-xs">Private Program</span>'
+            : '';
+  
+          const rewardCategories = {
+            "P4 - Low": [program.rewards[0]],
+            "P3 - Medium": [program.rewards[1]],
+            "P2 - High": [program.rewards[2]],
+            "P1 - Critical": [program.rewards[3]]
+          };
+  
+          // Function to return the correct background color for each category
+          const getCategoryColor = (category) => {
+            switch(category) {
+              case "P4 - Low":
+                return "bg-green-500";
+              case "P3 - Medium":
+                return "bg-yellow-500";
+              case "P2 - High":
+                return "bg-orange-600";
+              case "P1 - Critical":
+                return "bg-red-600";
+              default:
+                return "bg-gray-500";
+            }
+          };
+  
+          // Render rewards in categorized groups with color styling
+          const renderRewards = (category) => {
+            return rewardCategories[category].map(r =>
+              `<span class="inline-block ${getCategoryColor(category)} text-white px-3 py-1 rounded text-xs mr-2 mb-1">${category}: ${r.amount}</span>`
+            ).join("");
+          };
+  
+          card.innerHTML = `
+            <div class="mb-4">
+              <img 
+                src="${logoUrl}" 
+                alt="${program.name} Logo" 
+                class="w-full h-full object-cover rounded-xl mx-auto mb-2 cursor-pointer" 
+                onclick="window.location.href='Program.html?uuid=${program.program_id}'" 
+              />
+              ${privateLabel}
+            </div>
+  
+            <!-- Program Name and Details -->
+            <h3 class="text-xl font-semibold text-purple-400 mb-2 cursor-pointer hover:underline">
+              <a href="Program.html?uuid=${program.program_id}">${program.name}</a>
+            </h3>
+            <p class="text-lm text-gray-300 mb-3">${program.fast_description}</p>
+            <div class="mb-3">
+              ${renderRewards("P4 - Low")}
+              ${renderRewards("P3 - Medium")}
+              ${renderRewards("P2 - High")}
+              ${renderRewards("P1 - Critical")}
+            </div>
+            <p class="text-xl text-gray-400">Bounty Range: ${program.bounty_range}</p>
+            <p class="text-xl text-gray-400">Reports: ${program.number_of_reports}</p>
+            <p class="text-xl text-gray-400">Status: <span class="font-semibold text-green-400">${program.status}</span></p>
+          `;
+  
+          container.appendChild(card);
+        });
+      }
+  
+      // Initial render of all programs
+      renderPrograms(programs);
+  
+      // Search function
+      window.searchPrograms = function() {
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const filteredPrograms = programs.filter(program => {
+          const nameMatch = program.name.toLowerCase().includes(searchTerm);
+          const rewardMatch = program.rewards.some(reward => reward.amount.toString().includes(searchTerm));
+          const privateMatch = program.is_private && "private".toLowerCase().includes(searchTerm);
+          return nameMatch || rewardMatch || privateMatch;
+        });
+        renderPrograms(filteredPrograms); // Re-render filtered programs
+      };
     });
   </script>
+  
 
 </body>
 </html>

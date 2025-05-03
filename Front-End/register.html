@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Register – HackHunt</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="scripts/auth.js"></script>
   <link rel="icon" href="favicon.ico" />
 </head>
 <body class="bg-gray-950 text-white font-sans">
@@ -91,6 +92,12 @@
 
   <!-- JavaScript for form submission -->
   <script>
+    document.addEventListener("DOMContentLoaded", async function() {
+      const isAuthenticated = await authenticated(); // Renamed the variable to avoid conflict
+      if (isAuthenticated) {
+        window.location.href = "Programs.html"; // Redirect to Programs page if already logged in
+      }
+    });
     document.getElementById("registerForm").addEventListener("submit", async function(event) {
       event.preventDefault();
 

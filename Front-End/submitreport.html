@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submit Report – HackHunt</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="scripts/auth.js"></script>
   <link rel="icon" href="favicon.ico" />
 </head>
 <body class="bg-gray-950 text-white font-sans">
@@ -47,6 +48,12 @@
   </footer>
 
   <script>
+    document.addEventListener("DOMContentLoaded", async function() {
+      const isAuthenticated = await authenticated(); // Check if user is authenticated
+      if (!isAuthenticated) {
+        window.location.href = "Login.html"; // Redirect to login page if not authenticated
+      }
+    });
     document.getElementById("reportForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
@@ -62,7 +69,9 @@
       }
 
       const token = localStorage.getItem("token");
-      const programId = "1"; // Replace with dynamic ID if needed
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const programId = urlParams.get("uuid");
 
       try {
         const res = await fetch(`http://127.0.0.1:8000/api/researchers/reports/${programId}/Submit`, {
