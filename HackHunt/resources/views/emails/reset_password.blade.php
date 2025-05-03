@@ -8,8 +8,9 @@
     <div style="background-color: #ffffff; padding: 30px; border-radius: 10px;">
         <h2 style="color: #4f46e5;">Reset Your Password</h2>
         <p>Hello {{ $data['name'] }},</p>
-        <p>We received a request to reset your HackHunt account password. Click the button below to proceed:</p>
-        <a href="{{ $data['resetLink'] }}" style="background-color: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
+        <p>We received a request to reset your HackHunt account password.</p>
+        <p>Your Reset Token Is: <strong>{{ $data['token'] }}</strong></p>
+        <p>Token is Valid For 60 minutes.</p>
         <p>If you didn’t request this, you can safely ignore this email.</p>
         <p>– The HackHunt Team</p>
     </div>
