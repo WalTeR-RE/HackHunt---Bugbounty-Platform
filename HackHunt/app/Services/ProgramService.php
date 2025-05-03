@@ -54,9 +54,29 @@ class ProgramService{
         return $programs;
     }
     public function createProgram(Request $request){
+        $logo = null;
+    if ($request->hasFile('logo')) {
+        $file = $request->file('logo');
+        $originalFileName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $fileName = $request->name.'.' . $extension;
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file->getPathname());
+        finfo_close($finfo);
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+
+        if (!in_array($mime, $allowedMimes)) {
+            return response()->json(['error' => 'Invalid file type for logo.', 'code' => 422], 422);
+        }
+
+        $logo = $file->storeAs('logo', $fileName, 'public');
+    }
         $payload = [
             'program_id'=>(string)Str::uuid(),
             'name' => $request->name,
+            'logo' => $logo,
             'bounty_range'=> $this->generateBountyrange($request->rewards),
             'is_private'=>(bool)$request->is_private,
             'number_of_reports'=> 0,
@@ -103,7 +123,7 @@ class ProgramService{
     
         $isAdmin = ($user->role_id === 3);
         $program = Program::where('program_id', $uuid)->first();
-        if (!$isAdmin|| $program->is_private === true) {
+        if (!$isAdmin&& $program->is_private === true) {
             $isOwner = ProgramValidation::userOwnsProgram($uuid, $user->uuid);
             
             $hasAccessToPrivate = DB::table('program_user')
@@ -121,7 +141,14 @@ class ProgramService{
         if (!$program) {
             throw new \Exception('Program not found', 404);
         }
-    
+        $scope = array_map(function($url) {
+            return [
+                'target' => $url,
+                'type' => 'Web',       
+                'in_scope' => true    
+            ];
+        }, $program->scope);
+        $program->scope = $scope;
         return $program;
     }
     
@@ -182,6 +209,113 @@ class ProgramService{
                 'status' => 400
             ];
         }
+        
+        $program = Program::where('program_id', $uuid)
+        ->where('is_private',true)
+        ->first();
+        if (!$program) {
+            return [
+                'success' => false,
+                'message' => 'Program not found or not private',
+                'status' => 404
+            ];
+        }
+
+        $allowed = ProgramValidation::userOwnsProgram($uuid, $user->uuid);
+        if (!$allowed && $user->role_id !== 3) {
+            return [
+                'success' => false,
+                'message' => 'Forbidden',
+                'status' => 401
+            ];
+        }
+        
+        if($allowed && $request->email === $user->email){
+            return [
+                'success' => false,
+                'message' => 'You cannot invite yourself',
+                'status' => 400
+            ];
+        }
+    
+        $researcher = Users::where('email', $request->email)->first();
+        if (!$researcher) {
+            return [
+                'success' => false,
+                'message' => 'Researcher not found',
+                'status' => 404
+            ];
+        }
+
+        if($allowed && $researcher->role_id === 2){
+            return [
+                'success' => false,
+                'message' => 'You cannot invite other Owners',
+                'status' => 400
+            ];
+        }
+
+        $currentUsers = DB::table('program_user')
+            ->where('program_id', $uuid)
+            ->where('user_id', $researcher->uuid)
+            ->first();
+        if ($currentUsers) {
+            return [
+                'success' => false,
+                'message' => 'Researcher already in program',
+                'status' => 400
+            ];
+        }
+
+        $invited = ProgramInvite::where('program_id', $uuid)
+            ->where('user_id', $researcher->uuid)
+            ->first();
+        
+
+        if ($invited) {
+            if ($invited->status === 'Pending' && $invited->expire_at > now()) {
+                return [
+                    'success' => false,
+                    'message' => 'Invitation already sent',
+                    'status' => 400
+                ];
+            } elseif ($invited->expire_at < now()) {
+                ProgramInvite::where('program_id', $uuid)
+                ->where('user_id', $researcher->uuid)
+                ->update([
+                    'status' => 'Pending',
+                    'expire_at' => Carbon::now()->addDays(7)
+                ]);
+            
+            }
+        } else {
+            ProgramInvite::create([
+                'program_id' => $uuid,
+                'user_id' => $researcher->uuid,
+                'status' => 'Pending',
+                'invited_by' => $user->uuid,
+                'expire_at' => Carbon::now()->addDays(7)
+            ]);
+        }
+        
+        // TODO: Send email to researcher
+        
+        return [
+            'success' => true,
+            'message' => 'Researcher invited successfully',
+            'status' => 200
+        ];
+    }
+    public function removeResearcher($request, $uuid)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        if (!$user) {
+            return [
+                'success' => false,
+                'message' => 'No User Found with this data.',
+                'status' => 400
+            ];
+        }
         $program = Program::where('program_id', $uuid)->first();
         if (!$program) {
             return [
@@ -199,6 +333,7 @@ class ProgramService{
                 'status' => 401
             ];
         }
+        
         $researcher = Users::where('email', $request->email)->first();
         if (!$researcher) {
             return [
@@ -208,23 +343,164 @@ class ProgramService{
             ];
         }
 
-        ProgramInvite::updateOrCreate(
-            [
-                'program_id' => $uuid,
-                'user_id' => $researcher->uuid,
-            ],
-            [
-                'status' => 'Pending', 
-                'invited_by' => $user->uuid,
-                'expire_at' => Carbon::now()->addDays(7),
-            ]
-        );
-        
+        ProgramInvite::where('program_id', $uuid)
+            ->where('user_id', $researcher->uuid)
+            ->delete();
 
+        $stat = DB::table('program_user')
+            ->where('program_id', $uuid)
+            ->where('user_id', $researcher->uuid)
+            ->delete();
+
+        if ($stat) {
+            return [
+                'success' => true,
+                'message' => 'Researcher removed successfully',
+                'status' => 200
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Failed to remove researcher',
+                'status' => 500
+            ];
+        }
         
+    }
+
+    public function acceptrejectInvite($request, $uuid)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        if (!$user) {
+            return [
+                'success' => false,
+                'message' => 'No User Found with this data.',
+                'status' => 400
+            ];
+        }
+
+        if($user->role_id !== 1){
+            return [
+                'success' => false,
+                'message' => 'You cannot accept or reject an invitation',
+                'status' => 400
+            ];
+        }
+        
+        $program = Program::where('program_id', $uuid)->first();
+        if (!$program) {
+            return [
+                'success' => false,
+                'message' => 'Program not found',
+                'status' => 404
+            ];
+        }
+        $invite = ProgramInvite::where('program_id', $uuid)
+            ->where('user_id', $user->uuid)
+            ->where('expire_at', '>', now())
+            ->where('status', 'Pending')
+            ->first();
+            
+        if (!$invite) {
+            ProgramInvite::where('program_id', $uuid)
+                ->where('user_id', $user->uuid)
+                ->where('expire_at', '<', now())
+                ->update(['status' => 'Expired']);
+            return [
+                'success' => false,
+                'message' => 'Invitation not found',
+                'status' => 404
+            ];
+        }
+        
+        $stat = ProgramInvite::where('program_id', $uuid)
+            ->where('user_id', $user->uuid)
+            ->where('expire_at', '>', now())
+            ->where('status', 'Pending')
+            ->update(['status' => $request->status]);
+
+        if ($request->status === "Accepted") {
+            DB::table('program_user')->insert([
+                'program_id' => $uuid,
+                'user_id' => $user->uuid,
+            ]);
+        }
+
         return [
             'success' => true,
-            'message' => 'Researcher invited successfully',
+            'message' => "Invitation {$request->status}ed successfully",
+            'status' => 200
+        ];
+    }
+
+    public function leaveProgram($request, $uuid)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        if (!$user) {
+            return [
+                'success' => false,
+                'message' => 'No User Found with this data.',
+                'status' => 400
+            ];
+        }
+        
+        $program = Program::where('program_id', $uuid)->first();
+        if (!$program) {
+            return [
+                'success' => false,
+                'message' => 'Program not found',
+                'status' => 404
+            ];
+        }
+
+        $allowed = ProgramValidation::userOwnsProgram($uuid, $user->uuid);
+        if ($allowed && $user->role_id === 2) {
+            return [
+                'success' => false,
+                'message' => 'You cannot leave a program you own',
+                'status' => 400
+            ];
+        }
+
+        if(!$allowed){
+            return [
+                'success' => false,
+                'message' => 'You are not a member of this program',
+                'status' => 401
+            ];
+        }
+
+        DB::table('program_user')
+            ->where('program_id', $uuid)
+            ->where('user_id', $user->uuid)
+            ->delete();
+
+        return [
+            'success' => true,
+            'message' => 'Left program successfully',
+            'status' => 200
+        ];
+    }
+    
+    public function getInvites($request)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        if (!$user) {
+            return [
+                'success' => false,
+                'message' => 'No User Found with this data.',
+                'status' => 400
+            ];
+        }
+        
+        $invites = ProgramInvite::where('user_id', $user->uuid)
+            ->where('expire_at', '>', now())
+            ->where('status', 'Pending')
+            ->get();
+
+        return [
+            'success' => true,
+            'invites' => $invites,
             'status' => 200
         ];
     }

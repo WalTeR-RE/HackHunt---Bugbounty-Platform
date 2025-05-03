@@ -37,7 +37,7 @@ Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], f
 });
 
 Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::class], function () {
-    Route::put('/createProgram', [ProgramController::class, 'store']);
+    Route::post('/createProgram', [ProgramController::class, 'store']);
     Route::put('/editPrograms/{uuid}', [ProgramController::class, 'update']);
     Route::delete('/removePrograms/{uuid}', [ProgramController::class, 'destroy']);
     Route::get('/programs/{program_id}/reports', [ReportController::class, 'getProgramReports']);
@@ -56,12 +56,33 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         Route::get('{report}', [ReportController::class, 'getReportData']);
     });
     Route::put('/programs/{uuid}/invite', [ProgramController::class, 'acceptrejectInvite']);
-    Route::delete('/programs/{uuid}/remove', [ProgramController::class, 'leaveProgram']);
+    Route::delete('/programs/{uuid}/leave', [ProgramController::class, 'leaveProgram']);
     Route::get('/invites', [ProgramController::class, 'getInvites']);
     Route::get('/crowdstream', [ReportController::class, 'getCrowdstream']);
     Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
     Route::get('/programs/{uuid}/hallofFame', [ReportController::class, 'getHallOfFame']);
     Route::get('/programs', [ProgramController::class, 'index']);
+    
+});
+
+Route::get('/files/{filename}', function ($filename) {
+    $path = storage_path('app/public/attachments/' . $filename);
+
+    if (!file_exists($path)) {
+        return response()->json(['message' => 'File not found.'], 404);
+    }
+
+    return response()->download($path);
+});
+
+Route::get('/files/logo/{filename}', function ($filename) {
+    $path = storage_path('app/public/' . $filename);
+
+    if (!file_exists($path)) {
+        return response()->json(['message' => 'File not found.'], 404);
+    }
+
+    return response()->file($path);
 });
 
 

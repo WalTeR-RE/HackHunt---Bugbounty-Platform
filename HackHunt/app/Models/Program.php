@@ -20,6 +20,7 @@ class Program extends Model
     protected $fillable = [
         'program_id',
         'name',
+        'logo',
         'bounty_range',
         'is_private',
         'number_of_reports',

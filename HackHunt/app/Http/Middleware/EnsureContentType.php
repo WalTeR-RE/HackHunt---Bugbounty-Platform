@@ -11,20 +11,29 @@ class EnsureContentType
     /**
      * Handle an incoming request.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-
+        $method = $request->getMethod();
         $contentType = $request->header('Content-Type');
 
-        if ($contentType !== 'application/json' && $request->getMethod() !== 'GET'&& $request->getMethod() !== 'OPTIONS') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Content-Type must be application/json'
-            ], 415);
+        if (in_array($method, ['GET', 'HEAD', 'OPTIONS'])) {
+            return $next($request);
         }
 
-        return $next($request);
+        if (str_starts_with($contentType, 'application/json')) {
+            return $next($request);
+        }
+
+        if (str_starts_with($contentType, 'multipart/form-data')) {
+            return $next($request);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Content-Type must be application/json or multipart/form-data',
+        ], 415);
     }
 }

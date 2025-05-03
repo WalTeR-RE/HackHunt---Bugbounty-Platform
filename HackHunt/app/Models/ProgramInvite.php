@@ -15,9 +15,10 @@ class ProgramInvite extends Model
         'program_id',
         'user_id',
         'status',
+        'invited_by',
         'expire_at'
     ];
-
+    protected $primaryKey = 'program_id';
     protected $keyType = 'string';
 
     public $incrementing = false;

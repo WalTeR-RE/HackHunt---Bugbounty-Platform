@@ -110,7 +110,7 @@ class ProgramController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|unique:programs,name|max:255',
-                'bounty_range' => 'required|string',
+                'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
                 'is_private'=> 'required|boolean',
                 'fast_description' => 'required|string',
                 'rewards' => 'required|array|size:4',
@@ -151,11 +151,10 @@ class ProgramController extends Controller
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $this->programService->inviteResearcher($request, $uuid);
+            $response = $this->programService->inviteResearcher($request, $uuid);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Invitation sent successfully'
+                $response
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -196,20 +195,16 @@ class ProgramController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => 'required|email',
-                'status' => 'required|in:accept,reject',
+                'status' => 'required|in:Accepted,Rejected'
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $this->programService->acceptrejectInvite($request, $uuid);
+            $data = $this->programService->acceptrejectInvite($request, $uuid);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Invitation accepted successfully'
-            ]);
+            return response()->json($data);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -222,12 +217,9 @@ class ProgramController extends Controller
     public function leaveProgram(Request $request, string $uuid)
     {
         try {
-            $this->programService->leaveProgram($request, $uuid);
+            $data = $this->programService->leaveProgram($request, $uuid);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Left program successfully'
-            ]);
+            return response()->json($data);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

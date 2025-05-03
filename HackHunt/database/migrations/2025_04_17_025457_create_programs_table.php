@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('program_id')->unique();
             $table->string('name');
+            $table->string('logo')->nullable();
             $table->string('bounty_range')->nullable();
             $table->boolean('is_private')->default(0);
             $table->integer('number_of_reports')->nullable();
