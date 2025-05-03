@@ -62,7 +62,11 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
     Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
     Route::get('/programs/{uuid}/hallofFame', [ReportController::class, 'getHallOfFame']);
     Route::get('/programs', [ProgramController::class, 'index']);
-    
+    Route::group(['prefix' => 'friends'], function () {
+        Route::get('/', [ProgramController::class, 'getFriends']);
+        Route::post('/add', [ProgramController::class, 'addFriend']);
+        Route::delete('/remove/{uuid}', [ProgramController::class, 'removeFriend']);
+    });
 });
 
 Route::get('/files/{filename}', function ($filename) {
@@ -74,18 +78,6 @@ Route::get('/files/{filename}', function ($filename) {
 
     return response()->download($path);
 });
-
-Route::get('/files/logo/{filename}', function ($filename) {
-    $path = storage_path('app/public/' . $filename);
-
-    if (!file_exists($path)) {
-        return response()->json(['message' => 'File not found.'], 404);
-    }
-
-    return response()->file($path);
-});
-
-
 
 
 
