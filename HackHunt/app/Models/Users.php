@@ -96,27 +96,28 @@ class Users extends Authenticatable
     }
 
     public static function validationRules($isUpdate = false, $userId = null)
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'about_me' => 'nullable|string|max:500',
-            'nickname' => 'required|string|max:50|unique:users,nickname' . ($isUpdate ? ",$userId,uuid" : ''),
-            'profile_picture' => 'nullable|string',
-            'background_picture' => 'nullable|string',
-            'role_id' => 'nullable|integer|min:1',
-            'rank' => 'nullable|integer|min:0',
-            'country' => 'required|string|max:100',
-            'active' => 'boolean',
-            'total_points' => 'integer|min:0',
-            'accuracy' => 'numeric|min:0|max:100',
-            'links' => 'nullable|array',
-            'email' => 'required|email|max:255|unique:users,email' . ($isUpdate ? ",$userId,uuid" : ''),
-            'phone_number' => 'required|string|max:20|unique:users,phone_number' . ($isUpdate ? ",$userId,uuid" : ''),
-            'birthday' => 'required|date|before:today',
-            'password' => $isUpdate ? 'nullable|string|min:8' : 'required|string|min:8',
-            'verified' => 'boolean',
-            'vulnerabilities_count' => 'integer|min:0|nullable',
-            'engagement_count' => 'integer|min:0|nullable',
-        ];
-    }
+{
+    return [
+        'name' => $isUpdate ? 'nullable|string|max:255' : 'required|string|max:255',
+        'about_me' => 'nullable|string|max:500',
+        'nickname' => 'required|string|max:50|unique:users,nickname' . ($isUpdate ? ",$userId,uuid" : ''),
+        'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'background_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'role_id' => 'nullable|integer|min:1',
+        'rank' => 'nullable|integer|min:0',
+        'country' => 'required|string|max:100',
+        'active' => 'boolean',
+        'total_points' => 'integer|min:0',
+        'accuracy' => 'numeric|min:0|max:100',
+        'links' => 'nullable|array',
+        'email' => 'required|email|max:255|unique:users,email' . ($isUpdate ? ",$userId,uuid" : ''),
+        'phone_number' => 'required|string|max:20|unique:users,phone_number' . ($isUpdate ? ",$userId,uuid" : ''),
+        'birthday' => $isUpdate ? 'nullable|date|before:today' : 'required|date|before:today',
+        'password' => $isUpdate ? 'nullable|string|min:8' : 'required|string|min:8',
+        'verified' => 'boolean',
+        'vulnerabilities_count' => 'integer|min:0|nullable',
+        'engagement_count' => 'integer|min:0|nullable',
+    ];
+}
+
 }

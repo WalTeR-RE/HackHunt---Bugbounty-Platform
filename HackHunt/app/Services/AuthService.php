@@ -19,41 +19,129 @@ use App\Services\MailService;
 class AuthService
 {
     public function registerUser(Request $request)
-    {
-        
+{
+    $nickname = $request->nickname;
+    $profilePicturePath = 'default.png';
+    $backgroundPicturePath = 'default_background.png';
 
-        $payload = [
-            'uuid' => (string) Str::uuid(),
-            'name' => $request->name,
-            'about_me' => $request->about_me,
-            'nickname' => $request->nickname,
-            'profile_picture' => $request->profile_picture ?? 'default.png',
-            'background_picture' => $request->background_picture ?? 'default_background.png',
-            'role_id' => 1,
-            'rank' => 0,
-            'country' => $request->country,
-            'active' => (bool) ($request->active ?? true),
-            'total_points' => 0,
-            'accuracy' => 0.00,
-            'links' => json_encode($request->links ?? []),
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-            'birthday' => $request->birthday,
-            'password' => Hash::make($request->password),
-            'verified' => false,
-            'vulnerabilities_count' => 0,
-            'engagement_count' => 0,
-        ];
+    if ($request->hasFile('profile_picture')) {
+        $file = $request->file('profile_picture');
+        $ext = $file->getClientOriginalExtension();
+        $filename = $nickname . '_profile.' . $ext;
 
-        $user = Users::create($payload);
+        $mime = $file->getMimeType();
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!in_array($mime, $allowedMimes)) {
+            return response()->json(['error' => 'Invalid file type for profile picture.', 'code' => 422], 422);
+        }
 
-        return [
-            'success' => true,
-            'message' => 'User registered successfully',
-            'user' => $user,
-            'status' => 201
-        ];
+        $profilePicturePath = $file->storeAs('profile_pictures', $filename, 'public');
     }
+
+    if ($request->hasFile('background_picture')) {
+        $file = $request->file('background_picture');
+        $ext = $file->getClientOriginalExtension();
+        $filename = $nickname . '_background.' . $ext;
+
+        $mime = $file->getMimeType();
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!in_array($mime, $allowedMimes)) {
+            return response()->json(['error' => 'Invalid file type for background picture.', 'code' => 422], 422);
+        }
+
+        $backgroundPicturePath = $file->storeAs('background_pictures', $filename, 'public');
+    }
+
+    $payload = [
+        'uuid' => (string) Str::uuid(),
+        'name' => $request->name,
+        'about_me' => $request->about_me,
+        'nickname' => $nickname,
+        'profile_picture' => $profilePicturePath,
+        'background_picture' => $backgroundPicturePath,
+        'role_id' => 1,
+        'rank' => 0,
+        'country' => $request->country,
+        'active' => (bool) ($request->active ?? true),
+        'total_points' => 0,
+        'accuracy' => 0.00,
+        'links' => json_encode($request->links ?? []),
+        'email' => $request->email,
+        'phone_number' => $request->phone_number,
+        'birthday' => $request->birthday,
+        'password' => Hash::make($request->password),
+        'verified' => false,
+        'vulnerabilities_count' => 0,
+        'engagement_count' => 0,
+    ];
+
+    $user = Users::create($payload);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'User registered successfully',
+        'user' => $user,
+        'status' => 201
+    ]);
+}
+
+public function updateProfile(Request $request, $userId)
+{
+
+    $user = Users::find($userId);
+
+    if ($request->hasFile('profile_picture')) {
+        $file = $request->file('profile_picture');
+        $ext = $file->getClientOriginalExtension();
+        $filename = $user->nickname . '_profile.' . $ext;
+
+        $mime = $file->getMimeType();
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!in_array($mime, $allowedMimes)) {
+            return response()->json(['error' => 'Invalid file type for profile picture.', 'code' => 422], 422);
+        }
+
+        $profilePicturePath = $file->storeAs('profile_pictures', $filename, 'public');
+        $user->profile_picture = $profilePicturePath;
+    }
+
+    if ($request->hasFile('background_picture')) {
+        $file = $request->file('background_picture');
+        $ext = $file->getClientOriginalExtension();
+        $filename = $user->nickname . '_background.' . $ext;
+
+        $mime = $file->getMimeType();
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!in_array($mime, $allowedMimes)) {
+            return response()->json(['error' => 'Invalid file type for background picture.', 'code' => 422], 422);
+        }
+
+        $backgroundPicturePath = $file->storeAs('background_pictures', $filename, 'public');
+        $user->background_picture = $backgroundPicturePath;
+    }
+
+    $user->name = $request->name;
+    $user->about_me = $request->about_me;
+    $user->nickname = $request->nickname;
+    $user->country = $request->country;
+    $user->links = json_encode($request->links ?? []);
+    $user->phone_number = $request->phone_number;
+    $user->birthday = $request->birthday;
+
+    if ($request->password) {
+        $user->password = Hash::make($request->password);
+    }
+
+    $user->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'User updated successfully',
+        'user' => $user,
+        'status' => 200
+    ]);
+}
+
 
     public function loginUser(Request $request)
     {

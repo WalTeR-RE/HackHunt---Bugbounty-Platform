@@ -43,6 +43,7 @@ Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::cla
     Route::get('/programs/{program_id}/reports', [ReportController::class, 'getProgramReports']);
     Route::put('/programs/{program_id}/invite', [ProgramController::class, 'inviteResearcher']);
     Route::delete('/programs/{program_id}/remove', [ProgramController::class, 'removeResearcher']);
+    
 });
 
 
@@ -77,6 +78,8 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         Route::post('/unblock', [FriendController::class, 'unblockUser']);
         Route::get('/blocked', [FriendController::class, 'getBlockedUsers']);
     });
+
+    Route::post('/profile', [AuthController::class, 'updateProfile']);
 });
 
 Route::get('/files/{filename}', function ($filename) {
