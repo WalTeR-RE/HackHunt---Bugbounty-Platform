@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-900 text-white">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hall of Fame</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-6">
+  <h1 class="text-3xl font-bold mb-6 text-purple-400">Hall of Fame</h1>
+
+  <div class="w-full max-w-4xl bg-gray-800 p-4 rounded-xl shadow-lg">
+    <table class="table-auto w-full text-left">
+      <thead class="bg-gray-700 text-purple-300">
+        <tr>
+          <th class="px-4 py-2">Program ID</th>
+          <th class="px-4 py-2">User ID</th>
+          <th class="px-4 py-2">Rank</th>
+          <th class="px-4 py-2">Points</th>
+        </tr>
+      </thead>
+      <tbody id="hall-of-fame-body" class="text-white">
+        <!-- Rows will be injected here by JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Example API call with token authorization
+    const token = 'YOUR_TOKEN_HERE'; // replace with your token
+
+    fetch('http://127.0.0.1:8000/api/hall-of-fame', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      const tableBody = document.getElementById('hall-of-fame-body');
+      data.forEach(entry => {
+        tableBody.innerHTML += `
+          <tr class="border-t border-gray-700 hover:bg-gray-700">
+            <td class="px-4 py-2">${entry.program_id}</td>
+            <td class="px-4 py-2">${entry.user_id}</td>
+            <td class="px-4 py-2">${entry.rank}</td>
+            <td class="px-4 py-2">${entry.points}</td>
+          </tr>
+        `;
+      });
+    })
+    .catch(err => console.error('Error loading hall of fame:', err));
+  </script>
+</body>
+</html>
