@@ -53,6 +53,7 @@ class ReportService
         return ['report_id' => $report->id];
     }
 
+
     public function reward($request, $report)
     {
         $user = AuthenticateUser::authenticatedUser($request);
@@ -66,6 +67,11 @@ class ReportService
             return ['error' => 'You are not authorized to reward this report.', 'code' => 403];
         }
 
+        $researcher = Users::where('uuid', $report->reporter)->first();
+        if (!$researcher) {
+            return ['error' => 'Researcher not found.', 'code' => 404];
+        }
+
         $report->bounty = $request->bounty;
         $report->points = $request->points;
         $report->rewarded = true;
@@ -77,6 +83,11 @@ class ReportService
         $program->avg_bounty = $program->total_bounty / $program->vulnerabilities_rewarded;
         $program->save();
 
+        $researcher->total_points += $request->points;
+        $researcher->vulnerabilities_count+= 1;
+        $researcher->save();
+
+        AuthenticateUser::updateUsersRanks();
         return ['message' => 'Report rewarded successfully.'];
     }
 }

@@ -28,4 +28,16 @@ class AuthenticateUser
     {
         return Users::where('nickname', $nickname)->first();
     }
+
+    public static function updateUsersRanks(){
+        $users = Users::orderBy('total_points', 'desc')->get();
+        for($rank = 1; $rank <= count($users); $rank++){
+            $user = Users::find($users[$rank-1]->uuid);
+            if($user){
+                $user->rank = $rank;
+                $user->save();
+            }
+        }
+        
+    }
 }
