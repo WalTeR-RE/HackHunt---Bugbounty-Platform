@@ -43,6 +43,12 @@ Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::cla
     Route::get('/programs/{program_id}/reports', [ReportController::class, 'getProgramReports']);
     Route::put('/programs/{program_id}/invite', [ProgramController::class, 'inviteResearcher']);
     Route::delete('/programs/{program_id}/remove', [ProgramController::class, 'removeResearcher']);
+
+    Route::group(['prefix' => 'reports'], function () {
+        Route::put('{report}/triage', [ReportController::class, 'Update']);
+        Route::post('{report}/publish', [ReportController::class, 'Publish']);
+        Route::post('{report}/reward', [ReportController::class, 'Reward']);
+    });
     
 });
 
@@ -50,8 +56,6 @@ Route::group(['prefix' => 'customers', 'middleware' => AuthenticateCustomer::cla
 Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher::class], function () {
     Route::middleware('authenticated')->prefix('reports')->group(function () {
         Route::post('{program}/Submit', [ReportController::class, 'store']);
-        Route::put('{report}/triage', [ReportController::class, 'Update'])->middleware(AuthenticateCustomer::class) ;
-        Route::post('{report}/publish', [ReportController::class, 'Publish'])->middleware(AuthenticateCustomer::class);
         Route::post('{report}/comments', [ReportCommentController::class, 'Store']);
         Route::get('{report}/comments', [ReportCommentController::class, 'restore']);
         Route::get('{report}', [ReportController::class, 'getReportData']);
@@ -69,7 +73,7 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
 
     Route::group(['prefix' => 'friends'], function () {
         Route::get('/', [FriendController::class, 'getFriends']);
-        Route::put('/add', [FriendController::class, 'addFriend']);
+        Route::put('/add', [FriendController::class, 'sendFriendRequest']);
         Route::delete('/remove', [FriendController::class, 'removeFriend']);
         Route::get('/requests', [FriendController::class, 'getFriendRequests']);
         Route::put('/accept', [FriendController::class, 'acceptFriendRequest']);

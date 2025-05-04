@@ -22,6 +22,22 @@ class ReportController extends Controller
         $this->reportService = $reportService;
     }
 
+    public function Reward(Request $request, Report $report)
+    {
+        $validator = Validator::make($request->all(), [
+            'points' => 'required|integer|min:0',
+            'bounty' => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $data = $this->reportService->reward($request, $report);
+
+        return response()->json($data);
+    }
+
     public function getReportData(Request $request,Report $report){
         $data = $report->getReportData();
         return response()->json($data);
