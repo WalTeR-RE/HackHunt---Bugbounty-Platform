@@ -10,7 +10,7 @@
 <body class="bg-gray-950 text-white font-sans p-8">
   <div class="max-w-3xl mx-auto bg-gray-900 p-6 rounded-xl shadow-lg">
     <h2 class="text-2xl font-bold text-purple-400 mb-4">Create a New Program</h2>
-    
+   
     <form id="programForm" class="space-y-4" enctype="multipart/form-data">
       <!-- Program name and logo -->
       <input type="text" name="name" placeholder="Program Name" required class="w-full p-2 rounded bg-gray-800 text-white"/>
@@ -25,7 +25,7 @@
         <input type="checkbox" name="is_private" class="form-checkbox bg-gray-700 text-purple-500"> 
         <span>Private Program?</span>
       </label>
-
+ 
       <textarea name="fast_description" placeholder="Fast Description" required class="w-full p-2 rounded bg-gray-800 text-white"></textarea>
       <textarea name="target_description" placeholder="Target Description" required class="w-full p-2 rounded bg-gray-800 text-white"></textarea>
       <textarea name="description_rules" placeholder="Rules Description" required class="w-full p-2 rounded bg-gray-800 text-white"></textarea>
@@ -142,5 +142,17 @@
         }
     });
 </script>
+<!-- Footer -->
+<footer class="bg-gray-900 mt-12 border-t border-gray-800 text-center py-6 text-sm text-gray-400">
+  <div class="max-w-7xl mx-auto px-4">
+    <p>&copy; 2025 <span class="text-purple-500 font-semibold">HackHunt</span>. All rights reserved.</p>
+    <p class="mt-2">
+      <a href="index.html#features" class="hover:text-purple-400 transition">Features</a> ·
+      <a href="Programs.html" class="hover:text-purple-400 transition">Programs</a> ·
+      <a href="index.html#hall-of-fame" class="hover:text-purple-400 transition">Hall of Fame</a>
+    </p>
+  </div>
+</footer>
+
 </body>
 </html>
