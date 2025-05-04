@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\ReportComment;
 use Illuminate\Http\Request;
+use App\Helper\AuthenticateUser;
 
 class ReportCommentController extends Controller
 {
@@ -16,9 +17,23 @@ class ReportCommentController extends Controller
             'is_internal' => 'nullable|boolean',
         ]);
 
+        $reporter = AuthenticateUser::authenticatedUser($request);
+        if (!$reporter) {
+            return response()->json(['error' => 'No User Found with this data.'], 400);
+        }
+        $program = $report->program;
+        $owner = $program->owner;
+        if ($reporter->uuid !== $report->reporter_id && $reporter->uuid !== $owner->uuid) {
+            return response()->json(['error' => 'You are not authorized to comment on this report.'], 403);
+        }
+
+        if($request->is_internal && $reporter->uuid !== $owner->uuid){
+            return response()->json(['error' => 'You are not authorized to add internal comments.'], 403);
+        }
+
         ReportComment::create([
             'report_id' => $report->uuid,
-            'user_id' => auth()->user()->uuid,
+            'user_id' => $reporter->uuid,
             'comment' => $request->comment,
             'is_internal' => $request->boolean('is_internal'),
         ]);
@@ -27,8 +42,18 @@ class ReportCommentController extends Controller
     }
 
    
-    public function restore(Report $report)
-    {
+    public function restore(Request $request,Report $report)
+    {   
+        $current_user = AuthenticateUser::authenticatedUser($request);
+        if (!$current_user) {
+            return response()->json(['error' => 'No User Found with this data.'], 400);
+        }
+        $program = $report->program;
+        $owner = $program->owner;
+        if ($current_user->uuid !== $report->reporter_id && $current_user->uuid !== $owner->uuid) {
+            return response()->json(['error' => 'You are not authorized to restore this report.'], 403);
+        }
+
         $comments = $report->comments;
         return response()->json($comments);
     }
