@@ -11,7 +11,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportCommentController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProgramController;
-
+use App\Http\Controllers\FriendController;
 
 Route::fallback(function () {
     return response()->json(['message' => 'Not Found!'], 404);
@@ -63,9 +63,15 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
     Route::get('/programs/{uuid}/hallofFame', [ReportController::class, 'getHallOfFame']);
     Route::get('/programs', [ProgramController::class, 'index']);
     Route::group(['prefix' => 'friends'], function () {
-        Route::get('/', [ProgramController::class, 'getFriends']);
-        Route::post('/add', [ProgramController::class, 'addFriend']);
-        Route::delete('/remove/{uuid}', [ProgramController::class, 'removeFriend']);
+        Route::get('/', [FriendController::class, 'getFriends']);
+        Route::put('/add', [FriendController::class, 'addFriend']);
+        Route::delete('/remove', [FriendController::class, 'removeFriend']);
+        Route::get('/requests', [FriendController::class, 'getFriendRequests']);
+        Route::put('/accept', [FriendController::class, 'acceptFriendRequest']);
+        Route::put('/reject', [FriendController::class, 'rejectFriendRequest']);
+        Route::post('/block', [FriendController::class, 'blockUser']);
+        Route::post('/unblock', [FriendController::class, 'unblockUser']);
+        Route::get('/blocked', [FriendController::class, 'getBlockedUsers']);
     });
 });
 

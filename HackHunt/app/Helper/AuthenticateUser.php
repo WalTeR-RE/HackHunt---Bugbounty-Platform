@@ -23,4 +23,9 @@ class AuthenticateUser
             return null;
         }
     }
+
+    public static function getUserByNickname($nickname)
+    {
+        return Users::where('nickname', $nickname)->first();
+    }
 }

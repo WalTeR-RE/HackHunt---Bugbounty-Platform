@@ -17,10 +17,7 @@ class Friend extends Model
         'status'
     ];
 
-    protected $keyType = 'string';
-
-    public $incrementing = false;
-
+    
     public function userOne()
     {
         return $this->belongsTo(Users::class, 'user_one_id', 'uuid');
