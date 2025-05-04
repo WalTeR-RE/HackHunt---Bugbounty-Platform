@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\ProgramValidation;
 use App\Models\Report;
 use App\Models\ReportComment;
 use Illuminate\Http\Request;
@@ -22,12 +23,13 @@ class ReportCommentController extends Controller
             return response()->json(['error' => 'No User Found with this data.'], 400);
         }
         $program = $report->program;
-        $owner = $program->owner;
-        if ($reporter->uuid !== $report->reporter_id && $reporter->uuid !== $owner->uuid) {
+        $owner = ProgramValidation::userIsOwnerOrAdmin($program->program_id, $reporter->uuid);
+
+        if ($reporter->uuid !== $report->reporter_id && !$owner) {
             return response()->json(['error' => 'You are not authorized to comment on this report.'], 403);
         }
 
-        if($request->is_internal && $reporter->uuid !== $owner->uuid){
+        if($request->is_internal && !$owner) {
             return response()->json(['error' => 'You are not authorized to add internal comments.'], 403);
         }
 
@@ -49,8 +51,8 @@ class ReportCommentController extends Controller
             return response()->json(['error' => 'No User Found with this data.'], 400);
         }
         $program = $report->program;
-        $owner = $program->owner;
-        if ($current_user->uuid !== $report->reporter_id && $current_user->uuid !== $owner->uuid) {
+        $owner = ProgramValidation::userIsOwnerOrAdmin($program->program_id, $current_user->uuid);
+        if ($current_user->uuid !== $report->reporter_id && !$owner) {
             return response()->json(['error' => 'You are not authorized to restore this report.'], 403);
         }
 
