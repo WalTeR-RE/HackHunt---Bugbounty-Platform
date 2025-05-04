@@ -6,6 +6,7 @@ use Auth;
 use Illuminate\Http\Request;
 use App\Services\FriendService;
 use App\Helper\AuthenticateUser;
+use Illuminate\Support\Facades\Validator;
 
 class FriendController extends Controller
 {
@@ -17,9 +18,12 @@ class FriendController extends Controller
 
     public function sendFriendRequest(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'nickname' => 'required|exists:users,nickname',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
         $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
         $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
         
@@ -31,9 +35,12 @@ class FriendController extends Controller
 
     public function acceptFriendRequest(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'nickname' => 'required|exists:users,nickname',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
         $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
         $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
 
@@ -43,9 +50,12 @@ class FriendController extends Controller
     }
     public function rejectFriendRequest(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'nickname' => 'required|exists:users,nickname',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
         $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
         $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
 
@@ -55,9 +65,12 @@ class FriendController extends Controller
     }
     public function removeFriend(Request $request)
     {
-        $request->validate([
-            'nickname' => 'required|exists:users,uuid',
+        $validator = Validator::make($request->all(), [
+            'nickname' => 'required|exists:users,nickname',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
         $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
         $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
         
@@ -84,9 +97,12 @@ class FriendController extends Controller
     
     public function blockUser(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'nickname' => 'required|exists:users,nickname',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
         $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
         $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
 
@@ -97,9 +113,12 @@ class FriendController extends Controller
 
     public function unblockUser(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'nickname' => 'required|exists:users,nickname',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
         $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
         $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
 

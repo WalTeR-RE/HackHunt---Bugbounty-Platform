@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Helper\AuthenticateUser;
+use App\Helper\ProgramValidation;
 use App\Models\Users;
 use App\Helper\JwtHelper;
 use App\Models\Report;
@@ -50,5 +51,26 @@ class ReportService
         ]);
 
         return ['report_id' => $report->id];
+    }
+
+    public function reward($request, $report)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        if (!$user) {
+            return ['error' => 'No User Found with this data.', 'code' => 400];
+        }
+
+        $isOwner = ProgramValidation::userIsOwnerOrAdmin($report->program_id, $user->uuid);
+
+        if (!$isOwner) {
+            return ['error' => 'You are not authorized to reward this report.', 'code' => 403];
+        }
+
+        $report->bounty = $request->bounty;
+        $report->points = $request->points;
+        $report->rewarded = true;
+        $report->save();
+
+        return ['message' => 'Report rewarded successfully.'];
     }
 }
