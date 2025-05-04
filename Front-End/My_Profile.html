@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Profile - HackHunt</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: white;
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-12 px-4">
+
+  <h1 class="text-3xl font-bold text-purple-500 mb-8">My Profile</h1>
+
+  <div class="w-full max-w-2xl bg-gray-900 p-6 rounded-xl shadow-lg border border-purple-700">
+    <div class="flex items-center space-x-4 mb-6">
+      <img id="profile-picture" src="" alt="Profile Picture" class="w-24 h-24 rounded-full border-2 border-purple-700 object-cover">
+      <div>
+        <h2 id="name" class="text-xl font-bold text-white">Name</h2>
+        <p id="nickname" class="text-purple-400">@nickname</p>
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <p><span class="text-purple-400 font-semibold">Email:</span> <span id="email"></span></p>
+      <p><span class="text-purple-400 font-semibold">Country:</span> <span id="country"></span></p>
+      <p><span class="text-purple-400 font-semibold">Birthday:</span> <span id="birthday"></span></p>
+      <p><span class="text-purple-400 font-semibold">Rank:</span> <span id="rank"></span></p>
+      <p><span class="text-purple-400 font-semibold">Total Points:</span> <span id="total_points"></span></p>
+      <p><span class="text-purple-400 font-semibold">Accuracy:</span> <span id="accuracy"></span></p>
+      <p><span class="text-purple-400 font-semibold">About Me:</span> <span id="about_me"></span></p>
+    </div>
+  </div>
+<!-- Footer -->
+<footer class="bg-gray-900 text-center py-6 text-gray-500">
+    &copy; 2025 HackHunt. All rights reserved.
+  </footer>
+  <script>
+    async function fetchProfile() {
+      const token = localStorage.getItem('token'); // or manually paste one for testing
+
+      if (!token) {
+        alert('No token found!');
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:8000/me', {
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json'
+          }
+        });
+        const [user] = await res.json();
+
+        document.getElementById('profile-picture').src = `/images/profiles/${user.profile_picture}`;
+        document.getElementById('name').textContent = user.name;
+        document.getElementById('nickname').textContent = '@' + user.nickname;
+        document.getElementById('email').textContent = user.email;
+        document.getElementById('country').textContent = user.country;
+        document.getElementById('birthday').textContent = user.birthday;
+        document.getElementById('rank').textContent = user.rank;
+        document.getElementById('total_points').textContent = user.total_points;
+        document.getElementById('accuracy').textContent = user.accuracy + '%';
+        document.getElementById('about_me').textContent = user.about_me;
+      } catch (err) {
+        console.error(err);
+        alert('Error fetching profile');
+      }
+    }
+
+    fetchProfile();
+  </script>
+</body>
+</html>
