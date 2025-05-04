@@ -1,180 +1,238 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+    var gk_isXlsx = false;
+    var gk_xlsxFileLookup = {};
+    var gk_fileData = {};
+    function filledCell(cell) {
+      return cell !== '' && cell != null;
+    }
+    function loadFileData(filename) {
+    if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+            var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+            var firstSheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert sheet to JSON to filter blank rows
+            var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+            // Filter out blank rows (rows where all cells are empty, null, or undefined)
+            var filteredData = jsonData.filter(row => row.some(filledCell));
+
+            // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+            var headerRowIndex = filteredData.findIndex((row, index) =>
+              row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+            );
+            // Fallback
+            if (headerRowIndex === -1 || headerRowIndex > 25) {
+              headerRowIndex = 0;
+            }
+
+            // Convert filtered JSON back to CSV
+            var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+            csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+            return csv;
+        } catch (e) {
+            console.error(e);
+            return "";
+        }
+    }
+    return gk_fileData[filename] || "";
+    }
+    </script><!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>View Report – HackHunt</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="scripts/auth.js"></script>
-  <link rel="icon" href="favicon.ico" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>View Report – HackHunt</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="scripts/auth.js"></script>
+<link rel="icon" href="favicon.ico" />
 </head>
 <body class="bg-gray-950 text-white">
+<!-- Navbar -->
+<header class="bg-gray-900 shadow-md sticky top-0 z-50">
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+  <h1 class="text-2xl font-bold text-purple-500">HackHunt</h1>
+  <nav class="space-x-6 hidden md:block">
+    <a href="index.html" class="hover:text-purple-400">Home</a>
+    <a href="dashboard.html" class="hover:text-purple-400">Dashboard</a>
+    <a href="logout.html" class="bg-purple-600 px-4 py-2 rounded-xl hover:bg-purple-700 transition">Logout</a>
+  </nav>
+</div>
+</header>
 
-  <!-- Navbar -->
-  <header class="bg-gray-900 shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-purple-500">HackHunt</h1>
-      <nav class="space-x-6 hidden md:block">
-        <a href="index.html" class="hover:text-purple-400">Home</a>
-        <a href="dashboard.html" class="hover:text-purple-400">Dashboard</a>
-        <a href="logout.html" class="bg-purple-600 px-4 py-2 rounded-xl hover:bg-purple-700 transition">Logout</a>
-      </nav>
-    </div>
-  </header>
+<!-- Report Details -->
+<section class="max-w-4xl mx-auto px-6 py-12 space-y-6">
+<h2 class="text-3xl font-bold text-purple-500 text-center">Report Details</h2>
+<div id="reportDetails" class="bg-gray-900 p-6 rounded-xl shadow-lg space-y-4"></div>
 
-  <!-- Report Details -->
-  <section class="max-w-4xl mx-auto px-6 py-12 space-y-6">
-    <h2 class="text-3xl font-bold text-purple-500 text-center">Report Details</h2>
-    <div id="reportDetails" class="bg-gray-900 p-6 rounded-xl shadow-lg space-y-4">
-      <!-- Dynamic content inserted via JS -->
-    </div>
+<!-- Comments Section -->
+<div class="bg-gray-900 p-6 rounded-xl shadow-lg space-y-4">
+  <h3 class="text-2xl font-bold text-purple-400">Comments</h3>
+  <div id="commentsList" class="space-y-4"></div>
 
-    <!-- Comments Section -->
-    <div class="bg-gray-900 p-6 rounded-xl shadow-lg space-y-4">
-      <h3 class="text-2xl font-bold text-purple-400">Comments</h3>
-      <div id="commentsList" class="space-y-4">
-        <!-- Comments dynamically inserted -->
+  <form id="commentForm" class="space-y-4">
+    <textarea id="commentText" placeholder="Write your comment..." required class="w-full p-3 bg-gray-800 rounded-lg h-24 resize-none focus:outline-none"></textarea>
+    <div id="moderatorOptions" class="space-x-4 hidden">
+      <label><input type="checkbox" id="internalComment" class="mr-2">Internal</label>
+      <div id="rewardSection" class="space-x-2">
+        <input type="number" id="points" placeholder="Points" class="p-2 rounded bg-gray-800 w-24">
+        <input type="number" id="bounty" placeholder="Bounty $" class="p-2 rounded bg-gray-800 w-32">
+        <button id="rewardBtn" type="button" class="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition">Reward</button>
       </div>
-
-      <form id="commentForm" class="space-y-4">
-        <textarea id="commentText" placeholder="Write your comment..." required class="w-full p-3 bg-gray-800 rounded-lg h-24 resize-none focus:outline-none"></textarea>
-        <div id="moderatorOptions" class="space-x-4 hidden">
-          <label><input type="checkbox" id="internalComment" class="mr-2">Internal</label>
-          <div id="rewardSection" class="space-x-2">
-            <input type="number" id="points" placeholder="Points" class="p-2 rounded bg-gray-800 w-24">
-            <input type="number" id="bounty" placeholder="Bounty $" class="p-2 rounded bg-gray-800 w-32">
-            <button id="rewardBtn" type="button" class="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition">Reward</button>
-          </div>
-        </div>
-        <button type="submit" class="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 transition">Add Comment</button>
-      </form>
     </div>
-  </section>
+    <button type="submit" class="bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 transition">Add Comment</button>
+  </form>
+</div>
+</section>
 
-  <footer class="bg-gray-900 text-center py-6 text-gray-500">
-    &copy; 2025 HackHunt. All rights reserved.
-  </footer>
+<footer class="bg-gray-900 text-center py-6 text-gray-500">
+© 2025 HackHunt. All rights reserved.
+</footer>
 
-  <script>
-    let user = null;
-    let alreadyRewarded = false;
+<script>
+let user = null;
+let alreadyRewarded = false;
 
-    document.addEventListener("DOMContentLoaded", async function () {
-      user = await authenticated();
-      if (!user) return (window.location.href = "Login.html");
+document.addEventListener("DOMContentLoaded", async () => {
+  user = await authenticated();
+  if (!user) return window.location.href = "Login.html";
 
-      const roleId = user.role_id;
-      const urlParams = new URLSearchParams(window.location.search);
-      const reportId = urlParams.get("uuid");
+  const roleId = user.role_id;
+  const reportId = new URLSearchParams(window.location.search).get("uuid");
 
-      // Show moderator options if role_id >= 2
-      if (roleId >= 2) {
-        document.getElementById("moderatorOptions").classList.remove("hidden");
-      }
+  if (roleId >= 2) {
+    document.getElementById("moderatorOptions").classList.remove("hidden");
+  }
 
-      // Fetch report data
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const report = await res.json();
-
-        if (!res.ok) throw new Error("Report fetch failed");
-
-        // Render report
-        const container = document.getElementById("reportDetails");
-        container.innerHTML = `
-          <h3 class="text-xl font-semibold">Title: ${report.title}</h3>
-          <p><strong>Type:</strong> ${report.type}</p>
-          <p><strong>Description:</strong><br>${report.description}</p>
-          <p><strong>Severity:</strong> ${report.severity}</p>
-          <div><strong>Attachments:</strong><br>
-            ${report.attachments.map(file =>
-              `<a class="text-blue-400 underline" href="/files/${file}" target="_blank">${file}</a>`
-            ).join("<br>")}
-          </div>
-        `;
-
-        alreadyRewarded = report.rewarded;
-
-        if (alreadyRewarded) {
-          document.getElementById("rewardSection").classList.add("hidden");
-        }
-
-        // Load comments
-        loadComments(reportId);
-
-      } catch (err) {
-        alert("Failed to load report.");
-        console.error(err);
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
       }
     });
 
-    async function loadComments(reportId) {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}/comments`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const comments = await res.json();
-      const list = document.getElementById("commentsList");
-      list.innerHTML = comments.map(c =>
-        `<div class="bg-gray-800 p-4 rounded-lg">
-          <p>${c.internal ? "<strong>[Internal]</strong> " : ""}${c.text}</p>
-          <small class="text-gray-400">By ${c.user_name}</small>
-        </div>`
-      ).join("");
+    const report = await res.json();
+    if (!res.ok) {
+      console.error("Fetch failed:", report);
+      throw new Error("Fetch failed");
     }
 
-    // Submit comment
-    document.getElementById("commentForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const reportId = new URLSearchParams(window.location.search).get("uuid");
-      const token = localStorage.getItem("token");
-      const text = document.getElementById("commentText").value;
-      const internal = document.getElementById("internalComment").checked;
+    
+document.getElementById("reportDetails").innerHTML = `
+  <h3 class="text-xl font-semibold">Title: ${report.title}</h3>
+  <p><strong>Type:</strong> ${report.type}</p>
+  <p><strong>Description:</strong><br>${report.description}</p>
+  <p><strong>Severity:</strong> ${report.severity}</p>
+  <div><strong>Attachments:</strong><br>
+    ${report.attachments.map(file => 
+      `<a class="text-blue-400 underline" href="/files/${file}" target="_blank">${file}</a>`
+    ).join("<br>")}
+  </div>
+`;
 
-      const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ text, internal })
-      });
+    
 
-      if (res.ok) {
-        document.getElementById("commentText").value = "";
-        loadComments(reportId);
-      } else {
-        alert("Failed to add comment.");
+    alreadyRewarded = report.rewarded;
+    if (alreadyRewarded) {
+      document.getElementById("rewardSection").classList.add("hidden");
+    }
+
+    loadComments(reportId);
+  } catch (err) {
+    console.error("Failed to load report:", err);
+    alert("Failed to load report. Check the console for details.");
+  }
+});
+
+async function loadComments(reportId) {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}/comments`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
       }
     });
 
-    // Reward logic
-    document.getElementById("rewardBtn").addEventListener("click", async function () {
-      const reportId = new URLSearchParams(window.location.search).get("uuid");
-      const token = localStorage.getItem("token");
-      const points = document.getElementById("points").value;
-      const bounty = document.getElementById("bounty").value;
+    const comments = await res.json();
+    if (!res.ok) {
+      console.error("Failed to load comments:", comments);
+      throw new Error("Failed to load comments");
+    }
 
-      const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}/reward`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ points, bounty })
-      });
+    document.getElementById("commentsList").innerHTML = comments.map(c => `
+      <div class="bg-gray-800 p-4 rounded-lg">
+        <p>${c.internal ? "<strong>[Internal]</strong> " : ""}${c.text}</p>
+        <small class="text-gray-400">By ${c.user_name}</small>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("Error loading comments:", err);
+    alert("Failed to load comments. Check the console for details.");
+  }
+}
 
-      if (res.ok) {
-        alert("Reward granted.");
-        document.getElementById("rewardSection").classList.add("hidden");
-        alreadyRewarded = true;
-      } else {
-        alert("Reward failed.");
-      }
+document.getElementById("commentForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const reportId = new URLSearchParams(window.location.search).get("uuid");
+  const token = localStorage.getItem("token");
+  const text = document.getElementById("commentText").value;
+  const internal = document.getElementById("internalComment").checked;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ text, internal })
     });
-  </script>
+
+    if (res.ok) {
+      document.getElementById("commentText").value = "";
+      loadComments(reportId);
+    } else {
+      const error = await res.json();
+      console.error("Failed to add comment:", error);
+      alert("Failed to add comment. Check the console for details.");
+    }
+  } catch (err) {
+    console.error("Error adding comment:", err);
+    alert("Failed to add comment. Check the console for details.");
+  }
+});
+
+document.getElementById("rewardBtn").addEventListener("click", async function () {
+  const reportId = new URLSearchParams(window.location.search).get("uuid");
+  const token = localStorage.getItem("token");
+  const points = document.getElementById("points").value;
+  const bounty = document.getElementById("bounty").value;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/reports/${reportId}/reward`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ points, bounty })
+    });
+
+    if (res.ok) {
+      alert("Reward granted.");
+      document.getElementById("rewardSection").classList.add("hidden");
+      alreadyRewarded = true;
+    } else {
+      const error = await res.json();
+      console.error("Reward failed:", error);
+      alert("Reward failed. Check the console for details.");
+    }
+  } catch (err) {
+    console.error("Error granting reward:", err);
+    alert("Reward failed. Check the console for details.");
+  }
+});
+</script>
 </body>
 </html>
