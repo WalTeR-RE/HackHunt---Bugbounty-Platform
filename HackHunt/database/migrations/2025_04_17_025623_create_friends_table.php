@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('user_one_id');
             $table->uuid('user_two_id');
-            $table->enum('status', ['pending', 'accepted', 'blocked'])->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'blocked','rejected'])->default('pending');
             $table->timestamps();
 
             // Foreign keys

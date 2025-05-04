@@ -42,11 +42,11 @@ class FriendService
             ];
         }
 
-        Friend::create([
+        Friend::updateOrInsert([
             'user_one_id' => $userOneId,
-            'user_two_id' => $userTwoId,
-            'status' => 'pending'
-        ]);
+            'user_two_id' => $userTwoId
+        ],
+        ['status' => 'pending']);
 
         return [
             'success' => true,
