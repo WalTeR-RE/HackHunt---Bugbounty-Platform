@@ -11,6 +11,7 @@ use App\Helper\AuthenticateUser;
 use App\Helper\ProgramValidation;
 use App\Models\Report;
 use App\Models\ReportLog;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -138,5 +139,55 @@ class ReportController extends Controller
 
     return response()->json($reports);
 }
+
+    public function getHallOfFame(Request $request, $nickname)
+    {
+        $user = AuthenticateUser::getUserByNickname($nickname);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $hallOfFame = DB::select(
+            "SELECT p.name, SUM(r.points) as total_points
+             FROM reports r
+             JOIN programs p ON r.program_id = p.program_id
+             WHERE r.reporter = ? AND r.rewarded = 1
+             GROUP BY p.program_id, p.name",
+            [$user->uuid]
+        );
+
+        return response()->json($hallOfFame);
+    }
+
+    public function getProgramHallOfFame(Request $request, $program)
+    {
+
+        $hallOfFame = DB::select(
+            "SELECT u.nickname, SUM(r.points) as total_points
+             FROM reports r
+             JOIN users u ON r.reporter = u.uuid
+             WHERE r.program_id = ? AND r.rewarded = 1
+             GROUP BY u.uuid, u.nickname
+             Order BY total_points DESC",
+            [$program]
+        );
+
+        return response()->json($hallOfFame);
+    }
+
+    public function getCrowdstream(Request $request)
+    {
+       
+        $crowdstream = DB::select(
+            "SELECT r.title,r.type,r.severity,r.bounty,r.points, p.name as program_name, u.nickname as reporter_nickname
+             FROM reports r
+             JOIN programs p ON r.program_id = p.program_id
+             JOIN users u ON r.reporter = u.uuid
+             WHERE r.rewarded = '1'
+             ORDER BY r.created_at DESC"
+        );
+
+        return response()->json($crowdstream);
+    }
 
 }

@@ -55,13 +55,17 @@ Route::group(['prefix' => 'researchers', 'middleware' => AuthenticateResearcher:
         Route::get('{report}/comments', [ReportCommentController::class, 'restore']);
         Route::get('{report}', [ReportController::class, 'getReportData']);
     });
+
     Route::put('/programs/{uuid}/invite', [ProgramController::class, 'acceptrejectInvite']);
     Route::delete('/programs/{uuid}/leave', [ProgramController::class, 'leaveProgram']);
     Route::get('/invites', [ProgramController::class, 'getInvites']);
     Route::get('/crowdstream', [ReportController::class, 'getCrowdstream']);
     Route::get('/programs/{uuid}', [ProgramController::class, 'getProgramData']);
-    Route::get('/programs/{uuid}/hallofFame', [ReportController::class, 'getHallOfFame']);
+    Route::get('/programs/{uuid}/hallofFame', [ReportController::class, 'getProgramHallOfFame']);
+    Route::get('/hallOfFame/{nickname}', [ReportController::class, 'getHallOfFame']);
     Route::get('/programs', [ProgramController::class, 'index']);
+
+
     Route::group(['prefix' => 'friends'], function () {
         Route::get('/', [FriendController::class, 'getFriends']);
         Route::put('/add', [FriendController::class, 'addFriend']);

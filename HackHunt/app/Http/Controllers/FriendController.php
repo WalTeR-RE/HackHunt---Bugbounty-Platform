@@ -81,6 +81,40 @@ class FriendController extends Controller
 
         return response()->json(['friend_requests' => $friendRequests]);
     }
+    
+    public function blockUser(Request $request)
+    {
+        $request->validate([
+            'nickname' => 'required|exists:users,nickname',
+        ]);
+        $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
+        $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
+
+        $data = $this->friendService->blockUser($userOneId, $userTwoId);
+
+        return response()->json($data);
+    }
+
+    public function unblockUser(Request $request)
+    {
+        $request->validate([
+            'nickname' => 'required|exists:users,nickname',
+        ]);
+        $userOneId = AuthenticateUser::authenticatedUser($request)->uuid;
+        $userTwoId = AuthenticateUser::getUserByNickname($request->input('nickname'))->uuid;
+
+        $data = $this->friendService->unblockUser($userOneId, $userTwoId);
+
+        return response()->json($data);
+    }
+    public function getBlockedUsers(Request $request)
+    {
+        $userId = AuthenticateUser::authenticatedUser($request)->uuid;
+
+        $blockedUsers = $this->friendService->getBlockedUsers($userId);
+
+        return response()->json(['blocked_users' => $blockedUsers]);
+    }
 
 
 }
