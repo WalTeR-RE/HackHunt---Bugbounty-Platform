@@ -10,12 +10,12 @@
 </head>
 <body class="bg-gray-950 text-white font-sans">
 
-  <!-- Navbar (reuse from main page) -->
+  <!-- Navbar -->
   <header class="bg-gray-900 shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
       <h1 class="text-2xl font-bold text-purple-500">HackHunt</h1>
       <nav class="space-x-6 hidden md:block">
-        <a href=".html#features" class="hover:text-purple-400">Features</a>
+        <a href="index.html#features" class="hover:text-purple-400">Features</a>
         <a href="Programs.html" class="hover:text-purple-400">Programs</a>
         <a href="index.html" class="hover:text-purple-400">Hall of Fame</a>
         <a href="login.html" class="bg-purple-600 px-4 py-2 rounded-xl hover:bg-purple-700 transition">Login</a>
@@ -28,7 +28,7 @@
     <div class="max-w-2xl mx-auto bg-gray-900 rounded-2xl p-8 shadow-xl">
       <h2 class="text-3xl font-bold text-purple-500 mb-6 text-center">Create Your HackHunt Account</h2>
 
-      <form id="registerForm" class="space-y-6">
+      <form id="registerForm" class="space-y-6" enctype="multipart/form-data">
         <div>
           <label class="block mb-1 text-sm font-medium">Full Name</label>
           <input id="name" type="text" required class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
@@ -66,12 +66,12 @@
           <input id="links" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
         </div>
         <div>
-          <label class="block mb-1 text-sm font-medium">Profile Picture URL (optional)</label>
-          <input id="profile_picture" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+          <label class="block mb-1 text-sm font-medium">Profile Picture (optional)</label>
+          <input id="profile_picture" type="file" accept="image/*" class="w-full text-white">
         </div>
         <div>
-          <label class="block mb-1 text-sm font-medium">Background Picture URL (optional)</label>
-          <input id="background_picture" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white">
+          <label class="block mb-1 text-sm font-medium">Background Picture (optional)</label>
+          <input id="background_picture" type="file" accept="image/*" class="w-full text-white">
         </div>
 
         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 transition rounded-lg py-3 text-lg font-semibold">
@@ -90,45 +90,46 @@
     &copy; 2025 HackHunt. All rights reserved.
   </footer>
 
-  <!-- JavaScript for form submission -->
+  <!-- JavaScript -->
   <script>
     document.addEventListener("DOMContentLoaded", async function() {
-      const isAuthenticated = await authenticated(); // Renamed the variable to avoid conflict
+      const isAuthenticated = await authenticated();
       if (isAuthenticated) {
-        window.location.href = "Programs.html"; // Redirect to Programs page if already logged in
+        window.location.href = "Programs.html";
       }
     });
+
     document.getElementById("registerForm").addEventListener("submit", async function(event) {
       event.preventDefault();
 
-      const payload = {
-        name: document.getElementById("name").value,
-        nickname: document.getElementById("nickname").value,
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value,
-        about_me: document.getElementById("about_me").value,
-        country: document.getElementById("country").value,
-        phone_number: document.getElementById("phone_number").value,
-        birthday: document.getElementById("birthday").value,
-        profile_picture: document.getElementById("profile_picture").value || null,
-        background_picture: document.getElementById("background_picture").value || null,
-        links: document.getElementById("links").value.split(',').map(link => link.trim()),
-        active: true
-      };
+      const formData = new FormData();
+      formData.append("name", document.getElementById("name").value);
+      formData.append("nickname", document.getElementById("nickname").value);
+      formData.append("email", document.getElementById("email").value);
+      formData.append("password", document.getElementById("password").value);
+      formData.append("about_me", document.getElementById("about_me").value);
+      formData.append("country", document.getElementById("country").value);
+      formData.append("phone_number", document.getElementById("phone_number").value);
+      formData.append("birthday", document.getElementById("birthday").value);
+      formData.append("links", JSON.stringify(document.getElementById("links").value.split(',').map(link => link.trim())));
+      formData.append("active", true);
+
+      const profilePic = document.getElementById("profile_picture").files[0];
+      if (profilePic) formData.append("profile_picture", profilePic);
+
+      const backgroundPic = document.getElementById("background_picture").files[0];
+      if (backgroundPic) formData.append("background_picture", backgroundPic);
 
       try {
         const response = await fetch("http://127.0.0.1:8000/api/auth/register", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
+          body: formData
         });
 
         if (response.ok) {
           const data = await response.json();
           alert("Registration successful! Welcome, " + data.user.name);
-          window.location.href = "login.html"; // Redirect to login page
+          window.location.href = "login.html";
         } else {
           const error = await response.json();
           alert("Registration failed: " + (error.message || "Check your input."));
