@@ -6,6 +6,7 @@
   <title>Available Programs – HackHunt</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="scripts/auth.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
   <link rel="icon" href="favicon.ico" />
 </head>
 <body class="bg-gray-950 text-white font-sans">
@@ -57,7 +58,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
       
-      const isAuthenticated = await authenticated(); // Renamed the variable to avoid conflict
+      const isAuthenticated = await authenticated(); 
       if (!isAuthenticated) {
         window.location.href = "Login.html"; // Redirect to Programs page if already logged in
       }
@@ -72,81 +73,81 @@
       const programs = await response.json();
       const container = document.getElementById("programList");
   
-      // Function to render the program card
       function renderPrograms(filteredPrograms) {
-        container.innerHTML = ''; // Clear previous programs
-        filteredPrograms.forEach(program => {
-          const card = document.createElement("div");
-          card.className = "bg-gray-900 rounded-xl p-6 shadow-lg hover:shadow-purple-500/20 transition text-left";
-  
-          // Set up the logo URL
-          const logoUrl = `http://127.0.0.1:8000/storage/${program.logo}`;
-  
-          // Set up the private program indicator
-          const privateLabel = program.is_private
-            ? '<span class="bg-red-600 text-white px-2 py-1 rounded text-xs">Private Program</span>'
-            : '';
-  
-          const rewardCategories = {
-            "P4 - Low": [program.rewards[0]],
-            "P3 - Medium": [program.rewards[1]],
-            "P2 - High": [program.rewards[2]],
-            "P1 - Critical": [program.rewards[3]]
-          };
-  
-          // Function to return the correct background color for each category
-          const getCategoryColor = (category) => {
-            switch(category) {
-              case "P4 - Low":
-                return "bg-green-500";
-              case "P3 - Medium":
-                return "bg-yellow-500";
-              case "P2 - High":
-                return "bg-orange-600";
-              case "P1 - Critical":
-                return "bg-red-600";
-              default:
-                return "bg-gray-500";
-            }
-          };
-  
-          // Render rewards in categorized groups with color styling
-          const renderRewards = (category) => {
-            return rewardCategories[category].map(r =>
-              `<span class="inline-block ${getCategoryColor(category)} text-white px-3 py-1 rounded text-xs mr-2 mb-1">${category}: ${r.amount}</span>`
-            ).join("");
-          };
-  
-          card.innerHTML = `
-            <div class="mb-4">
-              <img 
-                src="${logoUrl}" 
-                alt="${program.name} Logo" 
-                class="w-full h-full object-cover rounded-xl mx-auto mb-2 cursor-pointer" 
-                onclick="window.location.href='Program.html?uuid=${program.program_id}'" 
-              />
-              ${privateLabel}
-            </div>
-  
-            <!-- Program Name and Details -->
-            <h3 class="text-xl font-semibold text-purple-400 mb-2 cursor-pointer hover:underline">
-              <a href="Program.html?uuid=${program.program_id}">${program.name}</a>
-            </h3>
-            <p class="text-lm text-gray-300 mb-3">${program.fast_description}</p>
-            <div class="mb-3">
-              ${renderRewards("P4 - Low")}
-              ${renderRewards("P3 - Medium")}
-              ${renderRewards("P2 - High")}
-              ${renderRewards("P1 - Critical")}
-            </div>
-            <p class="text-xl text-gray-400">Bounty Range: ${program.bounty_range}</p>
-            <p class="text-xl text-gray-400">Reports: ${program.number_of_reports}</p>
-            <p class="text-xl text-gray-400">Status: <span class="font-semibold text-green-400">${program.status}</span></p>
-          `;
-  
-          container.appendChild(card);
-        });
+  container.innerHTML = ''; // Clear previous programs
+
+  filteredPrograms.forEach((program, index) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.onclick = () => {
+      window.location.href = `Program.html?uuid=${program.program_id}`;
+    };
+
+    const logoUrl = `http://127.0.0.1:8000/storage/${program.logo}`;
+
+    const privateLabel = program.is_private
+      ? '<span class="bg-red-600 text-white px-2 py-1 rounded text-xs">Private Program</span>'
+      : '';
+
+    const rewardCategories = {
+      "P4 - Low": [program.rewards[0]],
+      "P3 - Medium": [program.rewards[1]],
+      "P2 - High": [program.rewards[2]],
+      "P1 - Critical": [program.rewards[3]]
+    };
+
+    const getCategoryColor = (category) => {
+      switch (category) {
+        case "P4 - Low":
+          return "bg-green-500";
+        case "P3 - Medium":
+          return "bg-yellow-500";
+        case "P2 - High":
+          return "bg-orange-600";
+        case "P1 - Critical":
+          return "bg-red-600";
+        default:
+          return "bg-gray-500";
       }
+    };
+
+    const renderRewards = (category) => {
+      return rewardCategories[category].map(r =>
+        `<span class="inline-block ${getCategoryColor(category)} text-white px-3 py-1 rounded text-xs mr-2 mb-1">${category}: ${r.amount}</span>`
+      ).join("");
+    };
+
+    card.innerHTML = `
+      <div class="mb-4">
+        <img 
+          src="${logoUrl}" 
+          alt="${program.name} Logo" 
+          class="w-full h-full object-stretch rounded-xl mx-auto mb-2 cursor-pointer" 
+        />
+        ${privateLabel}
+      </div>
+
+      <h3 class="text-xl font-semibold text-purple-400 mb-2 cursor-pointer hover:underline">
+        <a href="Program.html?uuid=${program.program_id}">${program.name}</a>
+      </h3>
+      <p class="text-lm text-gray-300 mb-3">${program.fast_description}</p>
+      <div class="mb-3">
+        ${renderRewards("P4 - Low")}
+        ${renderRewards("P3 - Medium")}
+        ${renderRewards("P2 - High")}
+        ${renderRewards("P1 - Critical")}
+      </div>
+      <p class="text-xl text-gray-400">Bounty Range: ${program.bounty_range}</p>
+      <p class="text-xl text-gray-400">Reports: ${program.number_of_reports}</p>
+      <p class="text-xl text-gray-400">Status: <span class="font-semibold text-green-400">${program.status}</span></p>
+    `;
+
+    setTimeout(() => {
+      container.appendChild(card);
+    }, index * 100); 
+  });
+}
+
   
       // Initial render of all programs
       renderPrograms(programs);
