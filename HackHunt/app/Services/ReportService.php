@@ -71,6 +71,13 @@ class ReportService
         $report->rewarded = true;
         $report->save();
 
+        $program = $report->program;
+        $program->total_bounty += $request->bounty;
+        $program->vulnerabilities_rewarded += 1;
+        $program->number_of_reports += 1;
+        $program->avg_bounty = $program->total_bounty / $program->vulnerabilities_rewarded;
+        $program->save();
+
         return ['message' => 'Report rewarded successfully.'];
     }
 }
