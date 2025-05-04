@@ -111,8 +111,11 @@
       formData.append("country", document.getElementById("country").value);
       formData.append("phone_number", document.getElementById("phone_number").value);
       formData.append("birthday", document.getElementById("birthday").value);
-      formData.append("links", JSON.stringify(document.getElementById("links").value.split(',').map(link => link.trim())));
-      formData.append("active", true);
+      const linkValues = document.getElementById("links").value.split(',').map(link => link.trim());
+      linkValues.forEach((link) => {
+      formData.append("links[]", link);
+      });
+      formData.append("active", 1);
 
       const profilePic = document.getElementById("profile_picture").files[0];
       if (profilePic) formData.append("profile_picture", profilePic);

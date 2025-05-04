@@ -103,25 +103,17 @@ class AuthController extends Controller
     // Test Only will remove it later
     public function test(Request $request)
 {
-    $user = AuthenticateUser::authenticatedUser($request);
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized'
-        ], 401);
+    // 93ed0cda-df8f-4618-ad6e-b087f25d08fe
+    
+    $boolean = ProgramValidation::userIsOwnerOrAdmin(
+        '93ed0cda-df8f-4618-ad6e-b087f25d08fe',
+        'ae9def1b-f1b8-4e1d-a0a8-2fd82b4b6ef5'
+    );
+    if ($boolean) {
+        return response()->json(['message' => 'User is owner or admin'], 200);
+    } else {
+        return response()->json(['message' => 'User is not owner or admin'], 403);
     }
-
-    $data = [
-        'name' => $user->name,
-        'resetLink' => url('/reset-password/blabla')
-    ];
-
-    Mail::to("email@gmail.com")->send(new MailService($data, 'reset'));
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Email sent successfully'
-    ]);
 }
 
     

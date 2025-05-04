@@ -26,4 +26,16 @@ class ProgramValidation
        }
        return false;
     }
+
+    public static function userIsOwnerOrAdmin(string $programUuid, string $userUuid): bool
+    {
+       $program = Program::find($programUuid);
+       $Owners = $program->owners;
+       foreach($Owners as $user){
+        if($user->uuid === $userUuid && $user->role_id >= 2){
+            return true;
+        }
+       }
+       return false;
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Program extends Model
 {
@@ -51,10 +52,25 @@ class Program extends Model
         return $this->reports()->sum('bounty');
     }
 
+    public function totalReports()
+    {
+        return $this->reports()->count();
+    }
+    public function totalVulnerabilities()
+    {
+        return $this->reports()->where('status', '!=', 'N/A')->where('status','!=','Duplicate')->count();
+    }
+
+    public function totalVulnerabilitiesRewarded()
+    {
+        return $this->reports()->where('status', '!=', 'N/A')->where('status','!=','Duplicate')->where('bounty', '>', 0)->count();
+    }
+        
+    
     public function owners()
     {
         return $this->belongsToMany(Users::class, 'program_user', 'program_id', 'user_id')
-                    ->select('uuid','name');
+                    ->select('uuid','name','role_id');
     }
     
     public function insertProgramUser($userId)
