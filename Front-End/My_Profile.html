@@ -56,37 +56,29 @@
       }
 
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/auth/me', {
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Accept': 'application/json'
-          }
+        const res1 = await fetch("http://127.0.0.1:8000/api/auth/me", {
+        headers: {
+            "Authorization": `Bearer ${token}`
+            }
         });
-       console.log(res.json());
-  
-
-        if (!res.ok) {
-          throw new Error('Failed to fetch profile data');
-        }
-
-        const data = await res.json();
-        const user = data.user || data || {};
+    
+        const user = await res1.json();
 
         console.log("User data:", user);
 
-        document.getElementById('profile-picture').src = user.profile_picture 
-          ? `/images/profiles/${user.profile_picture}` 
+        document.getElementById('profile-picture').src = user[0].profile_picture 
+          ? `http://127.0.0.1:8000/storage/profile_pictures/${user[0].profile_picture}` 
           : 'default-profile.png';
 
-        document.getElementById('name').textContent = user.name || 'Unknown';
-        document.getElementById('nickname').textContent = '@' + (user.nickname || 'unknown');
-        document.getElementById('email').textContent = user.email || '';
-        document.getElementById('country').textContent = user.country || '';
-        document.getElementById('birthday').textContent = user.birthday || '';
-        document.getElementById('rank').textContent = user.rank || '';
-        document.getElementById('total_points').textContent = user.total_points ?? 0;
-        document.getElementById('accuracy').textContent = (user.accuracy ?? 0) + '%';
-        document.getElementById('about_me').textContent = user.about_me || '';
+        document.getElementById('name').textContent = user[0].name || 'Unknown';
+        document.getElementById('nickname').textContent = '@' + (user[0].nickname || 'unknown');
+        document.getElementById('email').textContent = user[0].email || '';
+        document.getElementById('country').textContent = user[0].country || '';
+        document.getElementById('birthday').textContent = user[0].birthday || '';
+        document.getElementById('rank').textContent = user[0].rank || '';
+        document.getElementById('total_points').textContent = user[0].total_points ?? 0;
+        document.getElementById('accuracy').textContent = (user[0].accuracy ?? 0) + '%';
+        document.getElementById('about_me').textContent = user[0].about_me || '';
 
       } catch (err) {
         console.error(err);
@@ -129,7 +121,7 @@
     });
 
     // Load profile on page load
-    fetchProfile();
+   fetchProfile();
   </script>
 <!-- Footer -->
 <footer class="bg-gray-900 mt-12 border-t border-gray-800 text-center py-6 text-sm text-gray-400">
