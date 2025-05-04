@@ -25,7 +25,7 @@
       </div>
     </div>
 
-    <div class="space-y-2">
+    <div class="space-y-2 mb-4">
       <p><span class="text-purple-400 font-semibold">Email:</span> <span id="email"></span></p>
       <p><span class="text-purple-400 font-semibold">Country:</span> <span id="country"></span></p>
       <p><span class="text-purple-400 font-semibold">Birthday:</span> <span id="birthday"></span></p>
@@ -34,46 +34,113 @@
       <p><span class="text-purple-400 font-semibold">Accuracy:</span> <span id="accuracy"></span></p>
       <p><span class="text-purple-400 font-semibold">About Me:</span> <span id="about_me"></span></p>
     </div>
+
+    <!-- Logout Button -->
+    <div class="text-right">
+      <button id="logoutBtn" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-4 rounded">
+        Logout
+      </button>
+    </div>
   </div>
-<!-- Footer -->
-<footer class="bg-gray-900 text-center py-6 text-gray-500">
-    &copy; 2025 HackHunt. All rights reserved.
-  </footer>
+
+ 
+
   <script>
     async function fetchProfile() {
-      const token = localStorage.getItem('token'); // or manually paste one for testing
+      const token = localStorage.getItem('token');
 
       if (!token) {
         alert('No token found!');
+        window.location.href = 'Login.html';
         return;
       }
 
       try {
-        const res = await fetch('http://localhost:8000/me', {
+        const res = await fetch('http://127.0.0.1:8000/api/auth/me', {
           headers: {
             'Authorization': 'Bearer ' + token,
             'Accept': 'application/json'
           }
         });
-        const [user] = await res.json();
+       console.log(res.json());
+  
 
-        document.getElementById('profile-picture').src = `/images/profiles/${user.profile_picture}`;
-        document.getElementById('name').textContent = user.name;
-        document.getElementById('nickname').textContent = '@' + user.nickname;
-        document.getElementById('email').textContent = user.email;
-        document.getElementById('country').textContent = user.country;
-        document.getElementById('birthday').textContent = user.birthday;
-        document.getElementById('rank').textContent = user.rank;
-        document.getElementById('total_points').textContent = user.total_points;
-        document.getElementById('accuracy').textContent = user.accuracy + '%';
-        document.getElementById('about_me').textContent = user.about_me;
+        if (!res.ok) {
+          throw new Error('Failed to fetch profile data');
+        }
+
+        const data = await res.json();
+        const user = data.user || data || {};
+
+        console.log("User data:", user);
+
+        document.getElementById('profile-picture').src = user.profile_picture 
+          ? `/images/profiles/${user.profile_picture}` 
+          : 'default-profile.png';
+
+        document.getElementById('name').textContent = user.name || 'Unknown';
+        document.getElementById('nickname').textContent = '@' + (user.nickname || 'unknown');
+        document.getElementById('email').textContent = user.email || '';
+        document.getElementById('country').textContent = user.country || '';
+        document.getElementById('birthday').textContent = user.birthday || '';
+        document.getElementById('rank').textContent = user.rank || '';
+        document.getElementById('total_points').textContent = user.total_points ?? 0;
+        document.getElementById('accuracy').textContent = (user.accuracy ?? 0) + '%';
+        document.getElementById('about_me').textContent = user.about_me || '';
+
       } catch (err) {
         console.error(err);
         alert('Error fetching profile');
       }
     }
 
+    // Logout Button Handler
+    document.getElementById("logoutBtn")?.addEventListener("click", async function () {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert("No token found!");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/auth/logout", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (response.ok) {
+          alert("Logged out successfully!");
+          localStorage.removeItem("token");
+          localStorage.removeItem("refresh_token");
+          window.location.href = "Login.html";
+        } else {
+          const error = await response.json();
+          alert("Logout failed: " + (error.message || "Please try again."));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("An error occurred while logging out.");
+      }
+    });
+
+    // Load profile on page load
     fetchProfile();
   </script>
+<!-- Footer -->
+<footer class="bg-gray-900 mt-12 border-t border-gray-800 text-center py-6 text-sm text-gray-400">
+  <div class="max-w-7xl mx-auto px-4">
+    <p>&copy; 2025 <span class="text-purple-500 font-semibold">HackHunt</span>. All rights reserved.</p>
+    <p class="mt-2">
+      <a href="index.html#features" class="hover:text-purple-400 transition">Features</a> ·
+      <a href="Programs.html" class="hover:text-purple-400 transition">Programs</a> ·
+      <a href="index.html#hall-of-fame" class="hover:text-purple-400 transition">Hall of Fame</a>
+    </p>
+  </div>
+</footer>
 </body>
 </html>
