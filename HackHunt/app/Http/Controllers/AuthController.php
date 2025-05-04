@@ -22,6 +22,26 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = AuthenticateUser::authenticatedUser($request);
+        if (!$user) {
+            return response()->json(['error' => 'No User Found with this data.'], 400);
+        }
+
+        $validator = Validator::make($request->all(), Users::validationRules(true,$user->uuid));
+
+        if ($validator->fails()) {
+            return [
+                'success' => false,
+                'errors' => $validator->errors(),
+                'status' => 422
+            ];
+        }
+
+        return $this->authService->updateProfile($request, $user->uuid);
+    }
+    
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), Users::validationRules());
