@@ -97,7 +97,7 @@ class FriendService
             ];
         }
 
-        $friendRequest->update(['status' => 'rejected']);
+        $friendRequest->delete();
 
         return [
             'success' => true,

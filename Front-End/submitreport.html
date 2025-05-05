@@ -125,7 +125,7 @@ try {
   }
 
   alert("Report submitted successfully!");
-  window.location.href = `report.html?uuid=${result.uuid}`;
+  window.location.href = `report.html?uuid=${result.report_id}`;
 } catch (err) {
   console.error("Unexpected error:", err);
   alert("Unexpected error. Check the console for details.");

@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Report extends Model
 {
     use HasFactory;
+    
     protected $primaryKey = 'uuid'; 
     protected $keyType = 'string';
+    public $incrementing = false;
     protected $table = 'reports';
 
     protected $fillable = [
@@ -89,7 +91,6 @@ class Report extends Model
         ];
     }
     
-
     public function program()
     {
         return $this->belongsTo(Program::class, 'program_id', 'program_id');
@@ -112,8 +113,6 @@ class Report extends Model
 
     public static function getPublishedReports()
     {
-        return self::whereHas('report', function($query) {
-            $query->where('published', true);
-        })->get();
+        return self::where('published', true)->get();
     }
 }

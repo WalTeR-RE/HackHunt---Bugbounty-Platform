@@ -9,6 +9,8 @@ use App\Helper\JwtHelper;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
+use App\Services\MailService;
+use Illuminate\Support\Facades\Mail;
 
 
 class ReportService
@@ -49,8 +51,7 @@ class ReportService
             'attachments' => json_encode($attachments),
             'status' => 'New',
         ]);
-
-        return ['report_id' => $report->id];
+        return ['report_id' => $report->uuid];
     }
 
 
@@ -88,6 +89,14 @@ class ReportService
         $researcher->save();
 
         AuthenticateUser::updateUsersRanks();
+
+        $data = [
+            'program_name' => $program->name,
+            'bounty' =>  "Points: {$request->points}, Bounty: {$request->bounty}"
+        ];
+
+        Mail::to($researcher->email)->send(new MailService($data, 'bounty'));
+
         return ['message' => 'Report rewarded successfully.'];
     }
 }

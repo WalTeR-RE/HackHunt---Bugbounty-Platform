@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login – HackHunt</title>
+  <title>Forget Password – HackHunt</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="scripts/auth.js"></script>
   <link rel="icon" href="favicon.ico" />
@@ -15,30 +15,27 @@
     <div class="w-full max-w-md bg-gray-900 rounded-xl shadow-lg p-8 space-y-6">
 
       <h1 class="text-3xl font-bold text-purple-500 text-center">HackHunt</h1>
-      <h2 class="text-xl font-semibold text-center text-white">Login</h2>
+      <h2 class="text-xl font-semibold text-center text-white">Forget Password</h2>
 
       <!-- Login Form -->
       <form id="loginForm" class="space-y-4">
         <div>
           <label for="username" class="block mb-1 text-sm font-medium text-gray-300">Email</label>
           <input type="email" id="username" required class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-        </div>
-
-        <div>
+          <label for="token" class="block mb-1 text-sm font-medium text-gray-300">Token</label>
+          <input type="text" id="token" required class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
           <label for="password" class="block mb-1 text-sm font-medium text-gray-300">Password</label>
           <input type="password" id="password" required class="w-full px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+        
         </div>
-
+        
         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 transition py-2 rounded-lg font-medium text-white">
-          Login
+          Reset Password 
         </button>
       </form>
 
       <p class="text-sm text-center text-gray-400">
         Don’t have an account? <a href="register.html" class="text-purple-400 hover:underline">Register here</a>.
-      </p>
-      <p class="text-sm text-center text-gray-400">
-        Forget Your Password? <a href="Forget.html" class="text-purple-400 hover:underline">Reset here</a>.
       </p>
       <p class="text-sm text-center text-gray-400">
         <a href="index.html" class="text-purple-400 hover:underline">← Back to Home</a>
@@ -64,12 +61,14 @@
       event.preventDefault();
 
       const email = document.getElementById("username").value;
+      const token = document.getElementById("token").value;
       const password = document.getElementById("password").value;
 
-      if (email && password) {
-        const url = "http://127.0.0.1:8000/api/auth/login";
+      if (email) {
+        const url = "http://127.0.0.1:8000/api/auth/password/reset";
         const data = {
           email: email,
+          token: token,
           password: password
         };
 
@@ -81,17 +80,18 @@
           });
 
           if (!response.ok) {
-            throw new Error("Login failed. Please check your credentials.");
+            throw new Error("Reset failed. Please check your credentials.");
           }
 
           const result = await response.json();
-          localStorage.setItem("token", result.token['access_token']);
-          localStorage.setItem("refresh_token", result.token['refresh_token']);
-          window.location.href = "Programs.html";
+          if(response.ok){
+            alert(result.message);
+          }
+          window.location.href = "Login.html";
           // Redirect to dashboard or homepage if needed
         } catch (error) {
           console.error("Error:", error);
-          alert("Login failed. Please try again.");
+          alert("Reset failed. Please try again.");
         }
 
       } else {

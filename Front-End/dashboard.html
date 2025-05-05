@@ -15,11 +15,19 @@
       border: 1px solid #7c3aed;
     }
   </style>
+  <script src="scripts/auth.js"></script>
 </head>
 <body class="min-h-screen flex flex-col items-center py-10 px-6">
 
   <h1 class="text-3xl font-bold text-purple-500 mb-8">HackHunt Admin Dashboard</h1>
 
+  <!-- Admin Info -->
+  <div id="admin-info" class="mb-6 text-sm text-gray-300"></div>
+
+  <!-- Superusers List -->
+  <div id="superusers-list" class="mb-10 w-full max-w-3xl space-y-2"></div>
+
+  <!-- Action Form -->
   <div class="w-full max-w-3xl space-y-4">
     <select id="action" onchange="updateVisibility()" class="w-full px-4 py-2 rounded text-white">
       <option value="create">Create User</option>
@@ -43,7 +51,8 @@
     <input id="country" type="text" placeholder="Country" class="w-full px-4 py-2 rounded text-white" />
     <input id="phone_number" type="text" placeholder="Phone Number" class="w-full px-4 py-2 rounded text-white" />
     <input id="birthday" type="date" class="w-full px-4 py-2 rounded text-white" />
-   
+    <input id="links" type="text" placeholder='Links (e.g., ["https://..."])' class="w-full px-4 py-2 rounded text-white" />
+
     <button onclick="handleSubmit()" class="px-6 py-2 bg-purple-700 hover:bg-purple-800 rounded text-white font-semibold transition">
       Submit
     </button>
@@ -52,6 +61,23 @@
   <div id="response" class="mt-6 w-full max-w-3xl text-sm text-gray-300"></div>
 
   <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      const isAuthenticated = await authenticated();
+      if (!isAuthenticated) {
+        return window.location.href = "Login.html";
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return window.location.href = "Login.html";
+      }
+
+      updateRoleId();
+      updateVisibility();
+      await fetchAdminInfo(token);
+      await loadSuperUsers(token);
+    });
+
     function updateRoleId() {
       const roleSelector = document.getElementById('role_selector');
       document.getElementById('role_id').value = roleSelector.value;
@@ -59,32 +85,68 @@
 
     function updateVisibility() {
       const action = document.getElementById('action').value;
-      const fieldsToToggle = [
+      const toToggle = [
         'name', 'password', 'nickname', 'about_me', 'profile_picture',
-        'background_picture', 'country', 'phone_number', 'birthday', 'links',
-        'role_selector'
+        'background_picture', 'country', 'phone_number', 'birthday',
+        'links', 'role_selector'
       ];
-
-      fieldsToToggle.forEach(id => {
-        const field = document.getElementById(id).parentNode;
-        if (action === 'delete') {
-          document.getElementById(id).style.display = 'none';
-        } else {
-          document.getElementById(id).style.display = 'block';
-        }
+      toToggle.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = action === 'delete' ? 'none' : 'block';
       });
+    }
+
+    async function fetchAdminInfo(token) {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/auth/me", {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        document.getElementById('admin-info').textContent =
+          `Logged in as: ${data[0].name} (${data[0].email}) | Role ID: ${data[0].role_id}`;
+      } catch (err) {
+        console.error("Failed to fetch admin info:", err);
+      }
+    }
+
+    async function loadSuperUsers(token) {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/admins/superusers", {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const container = document.getElementById('superusers-list');
+        container.innerHTML = '<h2 class="text-2xl text-purple-400 mb-4">Current Superusers</h2>';
+
+        data.admins.forEach(admin => {
+          const card = document.createElement('div');
+          card.className = 'bg-gray-800 rounded p-4 flex flex-col md:flex-row justify-between items-start md:items-center';
+          card.innerHTML = `
+            <div>
+              <p class="font-bold text-white">${admin.name} (${admin.nickname})</p>
+              <p class="text-sm text-gray-300">${admin.email} - ${admin.country}</p>
+            </div>
+            <p class="text-sm text-purple-300">Role ID: ${admin.role_id}</p>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Failed to load superusers:", err);
+      }
     }
 
     async function handleSubmit() {
       const action = document.getElementById('action').value;
-      const token = document.getElementById('token').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const baseUrl = "http://localhost:8000/auth/AdminController";
+      const token = localStorage.getItem('token');
+      const email = getValue('email');
+      const baseUrl = "http://127.0.0.1:8000/api/admins";
 
       const endpointMap = {
-        create: `${baseUrl}/create_super_user`,
-        update: `${baseUrl}/update_super_user/${email}`,
-        delete: `${baseUrl}/destroy_super_user/${email}`
+        create: `${baseUrl}/createSuperUser`,
+        update: `${baseUrl}/editSuperUser/${email}`,
+        delete: `${baseUrl}/removeSuperUser/${email}`
       };
 
       const headers = {
@@ -95,7 +157,7 @@
 
       let body = {
         name: getValue('name'),
-        email: email,
+        email,
         password: getValue('password'),
         role_id: parseInt(getValue('role_id')),
         nickname: getValue('nickname'),
@@ -119,13 +181,14 @@
 
         const data = await res.json();
         document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+        await loadSuperUsers(token);
       } catch (error) {
         document.getElementById('response').textContent = `Error: ${error.message}`;
       }
     }
 
     function getValue(id) {
-      return document.getElementById(id).value.trim();
+      return document.getElementById(id)?.value.trim() || '';
     }
 
     function tryParseJson(str) {
@@ -135,10 +198,6 @@
         return [];
       }
     }
-
-    // Init on page load
-    updateRoleId();
-    updateVisibility();
   </script>
 
 </body>
