@@ -48,17 +48,23 @@
 <link rel="icon" href="favicon.ico" />
 </head>
 <body class="bg-gray-950 text-white font-sans">
-<!-- Navbar -->
-<header class="bg-gray-900 shadow-md sticky top-0 z-50">
-<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-<h1 class="text-2xl font-bold text-purple-500">HackHunt</h1>
-<nav class="space-x-6 hidden md:block">
-  <a href="index.html" class="hover:text-purple-400">Home</a>
-  <a href="dashboard.html" class="hover:text-purple-400">Dashboard</a>
-  <a href="logout.html" class="bg-purple-600 px-4 py-2 rounded-xl hover:bg-purple-700 transition">Logout</a>
-</nav>
-</div>
-</header>
+  <header class="bg-gray-900 shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-4xl font-bold text-purple-500">HackHunt</h1>
+      <nav class="text-xl space-x-6 hidden md:block">
+        <a href="My_Profile.html" class="hover:text-purple-400">My Profile</a>
+        <a href="index.html" class="hover:text-purple-400">Home</a>
+        <a href="Programs.html" class="hover:text-purple-400">Programs</a>
+        <a href="HallOfFame.html" class="hover:text-purple-400">Hall of Fame</a>
+         <!-- Admin-only Create Program button -->
+         <a href="CreateProgram.html" id="createProgramBtn" class="hidden hover:text-purple-400">Create Program</a>
+         <a href="dashboard.html" id="dashboardBtn" class="hidden hover:text-purple-400">Dashboard</a>
+        <button id="logoutBtn" class="ml-4 text-white bg-purple-600 hover:bg-purple-700 px-4 py-1 rounded text-sm">
+          Logout
+        </button>
+      </nav>
+    </div>
+  </header>
 
 <!-- Submit Report Section -->
 <section class="max-w-xl mx-auto px-6 py-20">
