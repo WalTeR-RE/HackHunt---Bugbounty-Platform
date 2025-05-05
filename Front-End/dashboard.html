@@ -10,37 +10,136 @@
       color: white;
       font-family: 'Inter', sans-serif;
     }
+    input, textarea, select {
+      background-color: #1e293b;
+      border: 1px solid #7c3aed;
+    }
   </style>
 </head>
-<body class="min-h-screen py-12 px-6 flex flex-col items-center">
+<body class="min-h-screen flex flex-col items-center py-10 px-6">
 
   <h1 class="text-3xl font-bold text-purple-500 mb-8">HackHunt Admin Dashboard</h1>
 
-  <!-- Dashboard Cards -->
-  <div class="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-    <div class="bg-gray-900 border border-purple-700 rounded-xl p-6 shadow-md">
-      <h2 class="text-lg font-semibold text-gray-300">Total Users</h2>
-      <p class="text-3xl font-bold text-purple-400 mt-2">1,245</p>
-    </div>
-    <div class="bg-gray-900 border border-purple-700 rounded-xl p-6 shadow-md">
-      <h2 class="text-lg font-semibold text-gray-300">Verified Users</h2>
-      <p class="text-3xl font-bold text-green-400 mt-2">1,020</p>
-    </div>
-    <div class="bg-gray-900 border border-purple-700 rounded-xl p-6 shadow-md">
-      <h2 class="text-lg font-semibold text-gray-300">Reports</h2>
-      <p class="text-3xl font-bold text-red-400 mt-2">73</p>
-    </div>
+  <div class="w-full max-w-3xl space-y-4">
+    <select id="action" onchange="updateVisibility()" class="w-full px-4 py-2 rounded text-white">
+      <option value="create">Create User</option>
+      <option value="update">Update User</option>
+      <option value="delete">Delete User</option>
+    </select>
+
+    <select id="role_selector" onchange="updateRoleId()" class="w-full px-4 py-2 rounded text-white">
+      <option value="3">Admin</option>
+      <option value="2">Program Owner</option>
+    </select>
+
+    <input id="email" type="email" placeholder="Email" class="w-full px-4 py-2 rounded text-white" />
+    <input id="name" type="text" placeholder="Name" class="w-full px-4 py-2 rounded text-white" />
+    <input id="password" type="password" placeholder="Password" class="w-full px-4 py-2 rounded text-white" />
+    <input id="role_id" type="hidden" />
+    <input id="nickname" type="text" placeholder="Nickname" class="w-full px-4 py-2 rounded text-white" />
+    <textarea id="about_me" placeholder="About Me" class="w-full px-4 py-2 rounded text-white resize-none h-24"></textarea>
+    <input id="profile_picture" type="text" placeholder="Profile Picture URL" class="w-full px-4 py-2 rounded text-white" />
+    <input id="background_picture" type="text" placeholder="Background Picture URL" class="w-full px-4 py-2 rounded text-white" />
+    <input id="country" type="text" placeholder="Country" class="w-full px-4 py-2 rounded text-white" />
+    <input id="phone_number" type="text" placeholder="Phone Number" class="w-full px-4 py-2 rounded text-white" />
+    <input id="birthday" type="date" class="w-full px-4 py-2 rounded text-white" />
+   
+    <button onclick="handleSubmit()" class="px-6 py-2 bg-purple-700 hover:bg-purple-800 rounded text-white font-semibold transition">
+      Submit
+    </button>
   </div>
 
-  <!-- Recent Activity -->
-  <div class="w-full max-w-6xl bg-gray-900 border border-purple-700 rounded-xl p-6 shadow-md">
-    <h2 class="text-xl font-semibold text-purple-400 mb-4">Recent Activity</h2>
-    <ul class="space-y-3 text-gray-300">
-      <li>✅ Superuser <span class="text-white font-semibold">admin@hackhunt.com</span> created</li>
-      <li>🔄 Updated profile for <span class="text-white font-semibold">hunter_joe</span></li>
-      <li>❌ Deleted inactive user <span class="text-white font-semibold">ghost123</span></li>
-    </ul>
-  </div>
+  <div id="response" class="mt-6 w-full max-w-3xl text-sm text-gray-300"></div>
+
+  <script>
+    function updateRoleId() {
+      const roleSelector = document.getElementById('role_selector');
+      document.getElementById('role_id').value = roleSelector.value;
+    }
+
+    function updateVisibility() {
+      const action = document.getElementById('action').value;
+      const fieldsToToggle = [
+        'name', 'password', 'nickname', 'about_me', 'profile_picture',
+        'background_picture', 'country', 'phone_number', 'birthday', 'links',
+        'role_selector'
+      ];
+
+      fieldsToToggle.forEach(id => {
+        const field = document.getElementById(id).parentNode;
+        if (action === 'delete') {
+          document.getElementById(id).style.display = 'none';
+        } else {
+          document.getElementById(id).style.display = 'block';
+        }
+      });
+    }
+
+    async function handleSubmit() {
+      const action = document.getElementById('action').value;
+      const token = document.getElementById('token').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const baseUrl = "http://localhost:8000/auth/AdminController";
+
+      const endpointMap = {
+        create: `${baseUrl}/create_super_user`,
+        update: `${baseUrl}/update_super_user/${email}`,
+        delete: `${baseUrl}/destroy_super_user/${email}`
+      };
+
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      let body = {
+        name: getValue('name'),
+        email: email,
+        password: getValue('password'),
+        role_id: parseInt(getValue('role_id')),
+        nickname: getValue('nickname'),
+        about_me: getValue('about_me'),
+        profile_picture: getValue('profile_picture'),
+        background_picture: getValue('background_picture'),
+        country: getValue('country'),
+        phone_number: getValue('phone_number'),
+        birthday: getValue('birthday'),
+        links: tryParseJson(getValue('links'))
+      };
+
+      if (action === 'delete') body = null;
+
+      try {
+        const res = await fetch(endpointMap[action], {
+          method: action === 'create' ? 'POST' : (action === 'update' ? 'PUT' : 'DELETE'),
+          headers,
+          body: body ? JSON.stringify(body) : undefined
+        });
+
+        const data = await res.json();
+        document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById('response').textContent = `Error: ${error.message}`;
+      }
+    }
+
+    function getValue(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function tryParseJson(str) {
+      try {
+        return JSON.parse(str);
+      } catch {
+        return [];
+      }
+    }
+
+    // Init on page load
+    updateRoleId();
+    updateVisibility();
+  </script>
 
 </body>
 </html>
