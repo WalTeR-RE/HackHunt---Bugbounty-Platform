@@ -58,9 +58,6 @@ class FriendService
     public function acceptFriendRequest($userOneId, $userTwoId)
     {
         $friendRequest = Friend::where(function ($query) use ($userOneId, $userTwoId) {
-            $query->where('user_one_id', $userOneId)
-                ->where('user_two_id', $userTwoId);
-        })->orWhere(function ($query) use ($userOneId, $userTwoId) {
             $query->where('user_one_id', $userTwoId)
                 ->where('user_two_id', $userOneId);
         })->first();
@@ -148,11 +145,20 @@ class FriendService
     public function getFriends($userId)
     {
         $friends = DB::table('friends')
-            ->where('user_one_id', $userId)
-            ->orWhere('user_two_id', $userId)
-            ->get();
-
-        return $friends;
+        ->where(function ($query) use ($userId) {
+            $query->where('user_one_id', $userId)
+                  ->orWhere('user_two_id', $userId);
+        })
+        ->join('users', function ($join) use ($userId) {
+            $join->on('friends.user_one_id', '=', 'users.uuid')
+                 ->orOn('friends.user_two_id', '=', 'users.uuid');
+        })
+        ->select('friends.*', 'users.nickname', 'users.email', 'users.name')
+        ->where('users.uuid', '!=', $userId)
+        ->get();
+    
+    return $friends;
+    
     }
 
     public function getFriendRequests($userId)

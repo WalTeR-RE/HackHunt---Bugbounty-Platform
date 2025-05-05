@@ -31,6 +31,7 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 Route::group(['prefix' => 'admins', 'middleware' => AuthenticateAdmin::class], function () {
+    Route::get('/superusers', [AdminController::class, 'getAllSuperUsers']);
     Route::post('/createSuperUser', [AdminController::class, 'createSuperUser']);
     Route::put('/editSuperUser/{uuid}', [AdminController::class, 'updateSuperUser']);
     Route::delete('/removeSuperUser/{uuid}', [AdminController::class, 'destroySuperUser']);

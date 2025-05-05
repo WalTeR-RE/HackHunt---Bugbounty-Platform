@@ -10,129 +10,367 @@
       color: white;
       font-family: 'Inter', sans-serif;
     }
+    .profile-header {
+      position: relative;
+      height: 180px;
+      border-radius: 0.75rem 0.75rem 0 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .profile-header:hover .background-image {
+      transform: scale(1.05);
+    }
+    .background-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.7s ease;
+    }
+    .profile-header-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(15, 23, 42, 0), rgba(15, 23, 42, 0.8));
+    }
+    .profile-picture-container {
+      position: relative;
+      margin-right: 1rem;
+    }
+    .profile-picture {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid #7e22ce;
+      object-fit: cover;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    .profile-picture:hover {
+      border-color: #a855f7;
+      transform: scale(1.05);
+    }
+    .online-indicator {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 16px;
+      height: 16px;
+      background-color: #22c55e;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .info-item:hover {
+      background-color: rgba(107, 33, 168, 0.1);
+      border-radius: 0.25rem;
+    }
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    .tab-button {
+      @apply px-4 py-2 border-b-2 font-semibold cursor-pointer;
+    }
+    .tab-button-active {
+      @apply text-purple-500 border-purple-500;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center py-12 px-4">
-
   <h1 class="text-3xl font-bold text-purple-500 mb-8">My Profile</h1>
-
-  <div class="w-full max-w-2xl bg-gray-900 p-6 rounded-xl shadow-lg border border-purple-700">
-    <div class="flex items-center space-x-4 mb-6">
-      <img id="profile-picture" src="" alt="Profile Picture" class="w-24 h-24 rounded-full border-2 border-purple-700 object-cover">
-      <div>
-        <h2 id="name" class="text-xl font-bold text-white">Name</h2>
-        <p id="nickname" class="text-purple-400">@nickname</p>
+  <div class="w-full max-w-4xl bg-gray-900 rounded-xl shadow-lg border border-purple-700 overflow-hidden">
+    <div class="profile-header">
+      <div id="background-image-container"></div>
+      <div class="profile-header-overlay"></div>
+    </div>
+    <div class="p-6">
+      <div class="flex items-center mb-6">
+        <div class="profile-picture-container">
+          <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
+          <div class="online-indicator"></div>
+        </div>
+        <div>
+          <h2 id="name" class="text-xl font-bold text-white">Name</h2>
+          <p id="nickname" class="text-purple-400">@nickname</p>
+        </div>
+      </div>
+      <div class="space-y-1 mb-6">
+        <div class="info-item p-2"><span class="text-purple-400 font-semibold">Email:</span> <span id="email"></span></div>
+        <div class="info-item p-2"><span class="text-purple-400 font-semibold">Country:</span> <span id="country"></span></div>
+        <div class="info-item p-2"><span class="text-purple-400 font-semibold">Birthday:</span> <span id="birthday"></span></div>
+        <div class="info-item p-2"><span class="text-purple-400 font-semibold">Rank:</span> <span id="rank"></span></div>
+        <div class="info-item p-2"><span class="text-purple-400 font-semibold">Total Points:</span> <span id="total_points"></span></div>
+        <div class="info-item p-2"><span class="text-purple-400 font-semibold">Accuracy:</span> <span id="accuracy"></span></div>
+        <div class="info-item p-2"><span class="text-purple-400 font-semibold">About Me:</span> <span id="about_me"></span></div>
+      </div>
+      <div class="mb-6">
+        <div class="flex space-x-4 mb-4">
+          <button class="tab-button tab-button-active" onclick="showTab('friends-tab')">Friends</button>
+          <button class="tab-button" onclick="showTab('halloffame-tab')">Hall of Fame</button>
+        </div>
+        <div id="friends-tab" class="tab-content">
+          <h3 class="text-lg font-semibold mb-2">Friends</h3>
+          <div id="friends-list" class="space-y-2"></div>
+        </div>
+        <div id="halloffame-tab" class="tab-content hidden">
+          <h3 class="text-lg font-semibold mb-2">Hall of Fame</h3>
+          <div id="hall-of-fame" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+      <div class="text-right">
+        <button id="logoutBtn" class="logout-btn bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-4 rounded">Logout</button>
       </div>
     </div>
-
-    <div class="space-y-2 mb-4">
-      <p><span class="text-purple-400 font-semibold">Email:</span> <span id="email"></span></p>
-      <p><span class="text-purple-400 font-semibold">Country:</span> <span id="country"></span></p>
-      <p><span class="text-purple-400 font-semibold">Birthday:</span> <span id="birthday"></span></p>
-      <p><span class="text-purple-400 font-semibold">Rank:</span> <span id="rank"></span></p>
-      <p><span class="text-purple-400 font-semibold">Total Points:</span> <span id="total_points"></span></p>
-      <p><span class="text-purple-400 font-semibold">Accuracy:</span> <span id="accuracy"></span></p>
-      <p><span class="text-purple-400 font-semibold">About Me:</span> <span id="about_me"></span></p>
-    </div>
-
-    <!-- Logout Button -->
-    <div class="text-right">
-      <button id="logoutBtn" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 px-4 rounded">
-        Logout
+  </div>
+  <div class="bg-gray-900 p-4 rounded-lg mb-4">
+    <h2 class="text-white text-lg mb-2">Send Friend Request</h2>
+    <div class="flex gap-2">
+      <input id="nickname-input" type="text" placeholder="Enter nickname"
+             class="w-full p-2 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+      <button onclick="handleSendFriendRequest()" 
+              class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+        Send
       </button>
     </div>
   </div>
-
- 
+  <footer class="bg-gray-900 mt-12 border-t border-gray-800 text-center py-6 text-sm text-gray-400">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>&copy; 2025 <span class="text-purple-500 font-semibold">HackHunt</span>. All rights reserved.</p>
+      <p class="mt-2">
+        <a href="index.html#features" class="hover:text-purple-400 transition">Features</a> ·
+        <a href="Programs.html" class="hover:text-purple-400 transition">Programs</a> ·
+        <a href="index.html#hall-of-fame" class="hover:text-purple-400 transition">Hall of Fame</a>
+      </p>
+    </div>
+  </footer>
 
   <script>
+
+    let = current_id = null;
     async function fetchProfile() {
       const token = localStorage.getItem('token');
-
-      if (!token) {
-        alert('No token found!');
-        window.location.href = 'Login.html';
-        return;
-      }
-
+      if (!token) return window.location.href = 'Login.html';
       try {
-        const res1 = await fetch("http://127.0.0.1:8000/api/auth/me", {
-        headers: {
-            "Authorization": `Bearer ${token}`
-            }
+        const res = await fetch("http://127.0.0.1:8000/api/auth/me", {
+          headers: { "Authorization": `Bearer ${token}` }
         });
-    
-        const user = await res1.json();
-
-        console.log("User data:", user);
-
-        document.getElementById('profile-picture').src = user[0].profile_picture 
-          ? `http://127.0.0.1:8000/storage/profile_pictures/${user[0].profile_picture}` 
-          : 'default-profile.png';
-
+        const user = await res.json();
+        document.getElementById('profile-picture').src = user[0].profile_picture ? `http://127.0.0.1:8000/storage/${user[0].profile_picture}` : 'default-profile.png';
+        const bgContainer = document.getElementById('background-image-container');
+        const bgUrl = user[0].background_picture ? `http://127.0.0.1:8000/storage/${user[0].background_picture}` : null;
+        bgContainer.innerHTML = bgUrl ? `<img src="${bgUrl}" alt="Background" class="background-image">` : `<div class="background-image" style="background-color: #1e293b;"></div>`;
         document.getElementById('name').textContent = user[0].name || 'Unknown';
         document.getElementById('nickname').textContent = '@' + (user[0].nickname || 'unknown');
         document.getElementById('email').textContent = user[0].email || '';
         document.getElementById('country').textContent = user[0].country || '';
         document.getElementById('birthday').textContent = user[0].birthday || '';
-        document.getElementById('rank').textContent = user[0].rank || '';
+        document.getElementById('rank').textContent = user[0].rank || 'UnRanked';
         document.getElementById('total_points').textContent = user[0].total_points ?? 0;
         document.getElementById('accuracy').textContent = (user[0].accuracy ?? 0) + '%';
         document.getElementById('about_me').textContent = user[0].about_me || '';
-
+        fetchFriends(token, user[0].uuid);
+        current_id = user[0].uuid;
+        fetchHallOfFame(user[0].nickname, token);
       } catch (err) {
         console.error(err);
         alert('Error fetching profile');
       }
     }
+    function handleSendFriendRequest() {
+  const nickname = document.getElementById('nickname-input').value.trim();
+  if (!nickname) return alert("Please enter a nickname.");
+  sendFriendRequest(nickname);
+}
 
-    // Logout Button Handler
-    document.getElementById("logoutBtn")?.addEventListener("click", async function () {
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        alert("No token found!");
-        return;
-      }
-
-      try {
-        const response = await fetch("http://127.0.0.1:8000/api/auth/logout", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (response.ok) {
-          alert("Logged out successfully!");
-          localStorage.removeItem("token");
-          localStorage.removeItem("refresh_token");
-          window.location.href = "Login.html";
-        } else {
-          const error = await response.json();
-          alert("Logout failed: " + (error.message || "Please try again."));
-        }
-      } catch (err) {
-        console.error(err);
-        alert("An error occurred while logging out.");
+  
+async function fetchFriends(token, myId) {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/researchers/friends", {
+      headers: {
+        "Authorization": `Bearer ${token}`
       }
     });
 
-    // Load profile on page load
-   fetchProfile();
+    const data = await res.json();
+    const friends = data.friends;
+    const container = document.getElementById('friends-list');
+    container.innerHTML = '';
+
+    friends.forEach(friend => {
+      const friendCard = document.createElement('div');
+      friendCard.className = 'bg-gray-800 rounded-lg p-4 flex items-center justify-between';
+
+      let buttonsHTML = '';
+
+      if (friend.status === 'pending' && friend.user_one_id === myId) {
+        buttonsHTML = `<span class="text-yellow-400 text-sm">Request Sent</span>`;
+      } else if (friend.status === 'pending' && friend.user_one_id !== myId) {
+        buttonsHTML = `
+          <button onclick="acceptFriend('${friend.nickname}')" class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded">Accept</button>
+          <button onclick="declineFriend('${friend.nickname}')" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded">Decline</button>
+        `;
+      } else if (friend.status === 'accepted') {
+        buttonsHTML = `
+          <button onclick="removeFriend('${friend.nickname}')" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded">Remove</button>
+          <button onclick="blockUser('${friend.nickname}')" class="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-3 py-1 rounded">Block</button>
+        `;
+      } else if (friend.status === 'blocked') {
+        buttonsHTML = `
+          <button onclick="unblockUser('${friend.nickname}')" class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded">Unblock</button>
+        `;
+      } else {
+        buttonsHTML = `
+          <button onclick="sendFriendRequest('${friend.nickname}')" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded">Add Friend</button>
+        `;
+      }
+
+      friendCard.innerHTML = `
+        <div>
+          <h3 class="text-white font-semibold">${friend.name}</h3>
+          <p class="text-sm text-purple-400">@${friend.nickname}</p>
+        </div>
+        <div class="flex gap-2 items-center">
+          ${buttonsHTML}
+        </div>
+      `;
+      container.appendChild(friendCard);
+    });
+  } catch (err) {
+    console.error("Error fetching friends:", err);
+  }
+}
+
+  
+    async function fetchHallOfFame(nickname, token) {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/researchers/hallOfFame/${nickname}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const container = document.getElementById("hall-of-fame");
+        container.innerHTML = data.map(p => `
+          <div class="bg-gray-800 rounded p-4 text-center">
+            <img src="http://127.0.0.1:8000/storage/${p.logo}" alt="${p.name}" class="w-20 h-20 mx-auto object-contain mb-2">
+            <p class="text-white font-semibold">${p.name}</p>
+            <p class="text-purple-400 text-sm">${p.total_points} points</p>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Error fetching hall of fame:", err);
+      }
+    }
+  
+    async function sendFriendRequest(nickname) {
+      try {
+        await fetch(`http://127.0.0.1:8000/api/researchers/friends/add`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nickname })
+        });
+        fetchFriends(localStorage.getItem('token'),current_id);
+      } catch (err) {
+        console.error("Error sending friend request:", err);
+      }
+    }
+  
+    async function acceptFriend(nickname) {
+      try {
+        await fetch(`http://127.0.0.1:8000/api/researchers/friends/accept`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nickname })
+        });
+        fetchFriends(localStorage.getItem('token'),current_id);
+      } catch (err) {
+        console.error("Error accepting friend:", err);
+      }
+    }
+  
+    async function declineFriend(nickname) {
+      try {
+        await fetch(`http://127.0.0.1:8000/api/researchers/friends/reject`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nickname })
+        });
+        fetchFriends(localStorage.getItem('token'),current_id);
+      } catch (err) {
+        console.error("Error declining friend:", err);
+      }
+    }
+  
+    async function removeFriend(nickname) {
+      try {
+        await fetch(`http://127.0.0.1:8000/api/researchers/friends/remove`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nickname })
+        });
+        fetchFriends(localStorage.getItem('token'),current_id);
+      } catch (err) {
+        console.error("Error removing friend:", err);
+      }
+    }
+  
+    async function blockUser(nickname) {
+      try {
+        await fetch(`http://127.0.0.1:8000/api/researchers/friends/block`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nickname })
+        });
+        fetchFriends(localStorage.getItem('token'),current_id);
+      } catch (err) {
+        console.error("Error blocking user:", err);
+      }
+    }
+  
+    async function unblockUser(nickname) {
+      try {
+        await fetch(`http://127.0.0.1:8000/api/researchers/friends/unblock`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nickname })
+        });
+        fetchFriends(localStorage.getItem('token'),current_id);
+      } catch (err) {
+        console.error("Error unblocking user:", err);
+      }
+    }
+  
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('tab-button-active'));
+      event.target.classList.add('tab-button-active');
+    }
+  
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = 'Login.html';
+    });
+  
+    window.onload = fetchProfile;
   </script>
-<!-- Footer -->
-<footer class="bg-gray-900 mt-12 border-t border-gray-800 text-center py-6 text-sm text-gray-400">
-  <div class="max-w-7xl mx-auto px-4">
-    <p>&copy; 2025 <span class="text-purple-500 font-semibold">HackHunt</span>. All rights reserved.</p>
-    <p class="mt-2">
-      <a href="index.html#features" class="hover:text-purple-400 transition">Features</a> ·
-      <a href="Programs.html" class="hover:text-purple-400 transition">Programs</a> ·
-      <a href="index.html#hall-of-fame" class="hover:text-purple-400 transition">Hall of Fame</a>
-    </p>
-  </div>
-</footer>
+  
 </body>
 </html>

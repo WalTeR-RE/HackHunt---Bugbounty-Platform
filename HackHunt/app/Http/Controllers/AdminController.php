@@ -18,6 +18,15 @@ class AdminController extends Controller
         $this->adminService = $adminService;
     }
 
+    function getAllSuperUsers(Request $request)
+    {
+        $admins = $this->adminService->getAllSuperUsers($request);
+
+        return response()->json([
+            'success' => true,
+            'admins' => $admins
+        ]);
+    }
     public function createSuperUser(Request $request)
     {
 

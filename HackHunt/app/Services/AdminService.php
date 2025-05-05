@@ -14,6 +14,14 @@ class AdminService
         
     }
 
+    function getAllSuperUsers($request)
+    {
+        $query = Users::where('role_id', '>=', 2)
+        ->select('uuid', 'name', 'email', 'role_id', 'nickname', 'about_me', 'profile_picture', 'background_picture', 'rank', 'country', 'total_points', 'accuracy', 'links', 'phone_number', 'birthday')
+        ->orderBy('created_at', 'desc')
+        ->get();
+        return $query;
+    }
     public function createSuperUser($request)
     {
         $user = new Users();

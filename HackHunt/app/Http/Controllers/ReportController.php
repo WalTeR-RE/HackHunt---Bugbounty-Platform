@@ -164,7 +164,7 @@ class ReportController extends Controller
         }
 
         $hallOfFame = DB::select(
-            "SELECT p.name, SUM(r.points) as total_points
+            "SELECT p.name,p.logo, SUM(r.points) as total_points
              FROM reports r
              JOIN programs p ON r.program_id = p.program_id
              WHERE r.reporter = ? AND r.rewarded = 1

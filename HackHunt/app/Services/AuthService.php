@@ -21,8 +21,8 @@ class AuthService
     public function registerUser(Request $request)
 {
     $nickname = $request->nickname;
-    $profilePicturePath = 'default.png';
-    $backgroundPicturePath = 'default_background.png';
+    $profilePicturePath = 'default.jpg';
+    $backgroundPicturePath = 'default_background.jpg';
 
     if ($request->hasFile('profile_picture')) {
         $file = $request->file('profile_picture');
