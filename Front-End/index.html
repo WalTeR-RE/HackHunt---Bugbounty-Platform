@@ -19,11 +19,14 @@
         <a href="Programs.html" class="hover:text-purple-400">Programs</a>
         <a href="HallOfFame.html" class="hover:text-purple-400">Hall of Fame</a>
         <a href="friends.html" class="hover:text-purple-400">Friends</a>
+        <!-- Admin-only Create Program button -->
+        <a href="CreateProgram.html" id="createProgramBtn" class="hidden hover:text-purple-400">Create Program</a>
+        <a href="dashboard.html" id="dashboardBtn" class="hidden hover:text-purple-400">Dashboard</a>
         <a href="register.html" class="bg-purple-600 px-4 py-2 rounded-xl hover:bg-purple-700 transition">Join Now</a>
       </nav>
     </div>
   </header>
-
+<h1>hello</h1>
   <!-- Hero Section -->
   <section class="text-center py-24 px-6 bg-gradient-to-br from-gray-900 to-gray-800">
     <h2 class="text-4xl md:text-6xl font-extrabold text-purple-500 mb-4">Secure Smarter. Hack Together.</h2>
@@ -80,6 +83,32 @@
   <footer class="bg-gray-900 text-center py-6 text-gray-500">
     &copy; 2025 HackHunt. All rights reserved.
   </footer>
+
+  <!-- Admin Role Checker Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/auth/me", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/json"
+          }
+        });
+
+        const [user] = await res.json(); // Laravel returns array
+        if (user && user.role_id >= 2) {
+          document.getElementById("createProgramBtn").classList.remove("hidden");
+          document.getElementById("dashboardBtn").classList.remove("hidden");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    });
+  </script>
 
 </body>
 </html>

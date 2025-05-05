@@ -21,6 +21,9 @@
         <a href="Programs.html" class="hover:text-purple-400">Programs</a>
         <a href="HallOfFame.html" class="hover:text-purple-400">Hall of Fame</a>
         <a href="friends.html" class="hover:text-purple-400">Friends</a>
+         <!-- Admin-only Create Program button -->
+         <a href="CreateProgram.html" id="createProgramBtn" class="hidden hover:text-purple-400">Create Program</a>
+         <a href="dashboard.html" id="dashboardBtn" class="hidden hover:text-purple-400">Dashboard</a>
         <button id="logoutBtn" class="ml-4 text-white bg-purple-600 hover:bg-purple-700 px-4 py-1 rounded text-sm">
           Logout
         </button>
@@ -184,6 +187,30 @@
       });
     });
   </script>
+ <!-- Admin Role Checker Script -->
+ <script>
+  document.addEventListener("DOMContentLoaded", async function () {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/auth/me", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Accept": "application/json"
+        }
+      });
+
+      const [user] = await res.json(); // Laravel returns array
+      if (user && user.role_id >= 2) {
+        document.getElementById("createProgramBtn").classList.remove("hidden");
+        document.getElementById("dashboardBtn").classList.remove("hidden");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  });
+</script>
 </body>
 </html>
