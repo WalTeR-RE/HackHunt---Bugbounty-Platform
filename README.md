@@ -89,5 +89,5 @@ HackHunt is an advanced bug bounty platform that connects organizations with sec
 *TO-BE-ADDED!
 
 ## TO-DO:
-- **Complete The Front-End
-- **Add Internal Users foreach Program Owner
+- Complete The Front-End
+- Add Internal Users foreach Program Owner
