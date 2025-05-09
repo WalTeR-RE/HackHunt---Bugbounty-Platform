@@ -58,7 +58,7 @@ class ReportCommentController extends Controller
         }
         $program = $report->program;
         $owner = ProgramValidation::userIsOwnerOrAdmin($program->program_id, $current_user->uuid);
-        if ($current_user->uuid !== $report->reporter && !$owner) {
+        if ($current_user->uuid !== $report->reporter && !$owner&& $current_user->role_id != 3) {
             return response()->json(['error' => 'You are not authorized to restore this report.'], 403);
         }
 

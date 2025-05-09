@@ -32,7 +32,7 @@ class ProgramValidation
        $program = Program::find($programUuid);
        $Owners = $program->owners;
        foreach($Owners as $user){
-        if($user->uuid === $userUuid && $user->role_id >= 2){
+        if($user->uuid === $userUuid || $user->role_id >= 2){
             return true;
         }
        }

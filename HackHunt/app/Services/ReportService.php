@@ -64,7 +64,7 @@ class ReportService
 
         $isOwner = ProgramValidation::userIsOwnerOrAdmin($report->program_id, $user->uuid);
 
-        if (!$isOwner) {
+        if (!$isOwner && $user->role_id !== 3) {
             return ['error' => 'You are not authorized to reward this report.', 'code' => 403];
         }
 
@@ -91,8 +91,11 @@ class ReportService
         AuthenticateUser::updateUsersRanks();
 
         $data = [
+            'name' => ($researcher->name." [ ".$researcher->nickname." ]"),
             'program_name' => $program->name,
-            'bounty' =>  "Points: {$request->points}, Bounty: {$request->bounty}"
+            'bounty' =>  "Bounty: {$request->bounty}",
+            'points' => "Points: {$request->points}",
+            'title' => $report->title
         ];
 
         Mail::to($researcher->email)->send(new MailService($data, 'bounty'));
